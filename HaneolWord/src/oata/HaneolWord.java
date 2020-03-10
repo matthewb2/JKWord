@@ -120,10 +120,13 @@ import oata.CustomEditorKit.StyledViewFactory;
 
 public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 	
+		static int WIDTH = 800, HEIHGT=1200;
+				
 		protected JInternalFrame internalFrame;
 		
-		//protected JDesktopPane desktop = new JDesktopPane();;
-		protected JDesktopPane container = new JDesktopPane();
+		protected JDesktopPane desktop = new JDesktopPane();;
+		//protected JDesktopPane container = new JDesktopPane();
+		protected JPanel container = new JPanel();
 		
 		protected JPanel statusBar = new JPanel();
 	    //
@@ -678,27 +681,59 @@ public void createToolbar(){
 
 	
 }
-public void showAttribute(){
+	public void showAttribute(){
     	//get attributes
-  	  
-      AttributeSet currentattr = new SimpleAttributeSet();
-      currentattr = maintext.getCharacterAttributes();
-      
-      Boolean isBold = StyleConstants.isBold(currentattr);
-      Boolean isItalic = StyleConstants.isItalic(currentattr);
-      Boolean isUnderline = StyleConstants.isUnderline(currentattr);
-      //
-      int alignment = StyleConstants.getAlignment(currentattr);
-      	    	        
-      if (alignment == StyleConstants.ALIGN_JUSTIFIED) bothalignIcon.setSelected(true);
-      	else bothalignIcon.setSelected(false);
-      if (alignment == StyleConstants.ALIGN_CENTER) centeralignIcon.setSelected(true);
-      	else centeralignIcon.setSelected(false);
-      if (alignment == StyleConstants.ALIGN_RIGHT) rightalignIcon.setSelected(true);
-      	else rightalignIcon.setSelected(false);
-      if (alignment == StyleConstants.ALIGN_LEFT) leftalignIcon.setSelected(true);
-      	else leftalignIcon.setSelected(false);
-}
+	  	  
+	      AttributeSet currentattr = new SimpleAttributeSet();
+	      currentattr = maintext.getCharacterAttributes();
+	      
+	      Boolean isBold = StyleConstants.isBold(currentattr);
+	      Boolean isItalic = StyleConstants.isItalic(currentattr);
+	      Boolean isUnderline = StyleConstants.isUnderline(currentattr);
+	      //
+	      int alignment = StyleConstants.getAlignment(currentattr);
+	      	    	        
+	      if (alignment == StyleConstants.ALIGN_JUSTIFIED) bothalignIcon.setSelected(true);
+	      	else bothalignIcon.setSelected(false);
+	      if (alignment == StyleConstants.ALIGN_CENTER) centeralignIcon.setSelected(true);
+	      	else centeralignIcon.setSelected(false);
+	      if (alignment == StyleConstants.ALIGN_RIGHT) rightalignIcon.setSelected(true);
+	      	else rightalignIcon.setSelected(false);
+	      if (alignment == StyleConstants.ALIGN_LEFT) leftalignIcon.setSelected(true);
+	      	else leftalignIcon.setSelected(false);
+	}
+
+	public void createNew(){
+		MainTextPane maintext = new MainTextPane();
+		ConPanel centerp = new ConPanel(maintext);
+		centerp.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		
+		centerp.setLayout(new BorderLayout());
+	    centerp.setBackground(Color.white);
+	                    
+		PanelRuler ruler = new PanelRuler(centerp);
+	   	ruler.setPreferredSize(new Dimension(WIDTH, 19));
+	
+	   	JScrollPane scrollPane = new JScrollPane();
+	   	scrollPane.setViewportView(maintext);
+		   
+	  	centerp.add(ruler, BorderLayout.NORTH);
+	  	centerp.add(scrollPane, BorderLayout.CENTER);
+	  	
+		JInternalFrame internalFrame = new JInternalFrame("제목없음",true,true,true,true);
+		
+		
+	  	//
+	  	internalFrame.setVisible(true);
+		
+	  	internalFrame.add(centerp);
+	  	desktop.add(internalFrame);
+	  	
+	  	internalFrame.setSize(internalFrame.getMaximumSize());
+	  	internalFrame.pack();
+	  	
+	
+	}
     
     public void createMenu(){
     	JMenuItem   new_blank, open, exit, close, find, replace, about, random, deletefile, resize, save, saveas;
@@ -716,23 +751,11 @@ public void showAttribute(){
         new_blank.setMnemonic(KeyEvent.VK_N);
         new_blank.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
-                    //System.exit(0);
-            	
-            	MainTextPane maintext = new MainTextPane();
-            	ConPanel centerp = new ConPanel(maintext);
-            	
-
-            	JInternalFrame internalFrame = new JInternalFrame("제목없음",true,true,true,true);
-            	
-            	
-              	internalFrame.add(centerp,BorderLayout.CENTER);
-              	internalFrame.add(centerp,BorderLayout.CENTER);
-              	
-              	internalFrame.setVisible(true);
-              	container.add(internalFrame, BorderLayout.CENTER);
-
-            }
-        });
+              	//
+              	createNew();
+	
+	            }
+	        });
 
 
         menu1.add(new_blank);
@@ -1002,19 +1025,11 @@ public void showAttribute(){
     	
     	//scrollPane = new JScrollPane(maintext);
         scrollPane.setViewportView(maintext);
- 	    //scrollPane.setViewportView(desktop);
-    	
-    	//container.add(scrollPane, BorderLayout.CENTER);
+ 	   
       	centerp.add(ruler, BorderLayout.NORTH);
       	centerp.add(scrollPane, BorderLayout.CENTER);
       	
       	
-      	//
-      	//container.add(centerp, BorderLayout.CENTER);
-      	container.add(toolbarwrap, BorderLayout.PAGE_START);
- 	    //container.add(desktop, BorderLayout.CENTER);
- 	    container.add(statusBar, BorderLayout.PAGE_END);
- 	    
       	 
     	//wrapper
     	JPanel left = new JPanel();
@@ -1024,24 +1039,25 @@ public void showAttribute(){
     	// left blank space
     	//container.add(left, BorderLayout.WEST);
     	//
-    	
-    	
+    	    	
     	internalFrame = new JInternalFrame("제목없음",true,true,true,true);
+    	internalFrame.setVisible(true);
     	
-    	
-      	internalFrame.add(centerp,BorderLayout.CENTER);
-      	container.add(internalFrame, BorderLayout.CENTER);
+      	internalFrame.add(centerp);
+      	desktop.add(internalFrame);
       	
-      	//internalFrame.setSize(internalFrame.getMaximumSize());
-      	//internalFrame.pack();
-      	internalFrame.setVisible(true);
+      	internalFrame.setSize(internalFrame.getMaximumSize());
+      	internalFrame.pack();
       	
       	
-    	this.add(container, BorderLayout.CENTER);
-      	//this.add(internalFrame);
-      	
-      	//internalFrame.setSize(400,300);
-        
+      	this.add(toolbarwrap, BorderLayout.NORTH);
+ 	    this.add(desktop);
+ 	    statusBar.setLayout(new FlowLayout(FlowLayout.LEFT));
+ 	    JLabel jl1 = new JLabel("빈문서1");
+	    jl1.setPreferredSize(new Dimension(100, 20));
+ 	    statusBar.add(jl1);
+ 	    
+ 	    this.add(statusBar, BorderLayout.SOUTH);
       	
     	setDefaultCloseOperation(EXIT_ON_CLOSE);
     	
