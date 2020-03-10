@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -22,15 +23,20 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Random;
 
 import javax.swing.AbstractAction;
@@ -48,9 +54,11 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -64,6 +72,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -75,6 +84,8 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -97,18 +108,30 @@ import javax.swing.text.StyledEditorKit;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
 import javax.swing.text.rtf.RTFEditorKit;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEdit;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import oata.CustomEditorKit.StyledViewFactory;
 
 
-public class HaneolWord extends JFrame implements MouseListener{
+
+public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 	
-	    //JTextPane maintext;
-		MainTextPane maintext;
-		CustomDocument doc;
+		protected JInternalFrame internalFrame;
+		
+		//protected JDesktopPane desktop = new JDesktopPane();;
+		protected JDesktopPane container = new JDesktopPane();
+		
+		protected JPanel statusBar = new JPanel();
+	    //
+		protected MainTextPane maintext;
+		protected CustomDocument doc;
 		
 		
-		Color selectColor;
+		protected Color selectColor;
 		
 		protected FontDialog m_fontDialog;
 		protected ParagraphDialog m_paragraphDialog;
@@ -116,7 +139,9 @@ public class HaneolWord extends JFrame implements MouseListener{
 		protected TableDialog m_tableDialog;
 		protected MultiColumnDialog m_multiColumnDialog;
 		
-		  
+		
+		JScrollPane scrollPane= new JScrollPane();
+		
 	    //
 	    StyleContext sc = new StyleContext();
 	    Style defaultStyle = sc.getStyle(StyleContext.DEFAULT_STYLE);
@@ -131,11 +156,51 @@ public class HaneolWord extends JFrame implements MouseListener{
 	    
 	    JComboBox jcbFont, jcbSelectSize, jcbSelectZoom, jcbSelectSpace;
 	    
+	    Element current;
+	    
 	    float scale = 1;
 	    
-    public static void main(String[] args) {
+	    //
+	    protected UndoManager m_undo = new UndoManager();
+	   
+	    
+    public static void main(String[] args) throws IOException {
         new HaneolWord();
     }
+    
+
+    
+    void checkUpdate() throws IOException{
+    	
+    	URL url=new URL("http://swave.woobi.co.kr/ART/update.xml");
+
+    	BufferedReader bf;
+
+		String line;
+
+		bf = new BufferedReader(new InputStreamReader(url.openStream()));
+
+		int[] current = {0, 1, 2};
+		//int num;
+		while((line = bf.readLine())!= null){
+			if (line.contains(" ")) break;
+			//System.out.println(line);
+			String[] tmp = line.split("-");
+			//System.out.println(tmp.length);
+			
+			if (Integer.parseInt(tmp[1])>current[1]) JOptionPane.showMessageDialog(null, "");
+			else if (Integer.parseInt(tmp[1])==current[1] && Integer.parseInt(tmp[2])>current[2]) JOptionPane.showMessageDialog(null, "");
+			else if (Integer.parseInt(tmp[1])==current[1] && Integer.parseInt(tmp[2])==current[2] &&Integer.parseInt(tmp[3])>current[3]) 	JOptionPane.showMessageDialog(null, "");
+			
+			 
+		}
+
+		bf.close();
+		
+		
+
+    }
+
     
     public void saveEx(){
     	try {
@@ -196,23 +261,21 @@ public class HaneolWord extends JFrame implements MouseListener{
     
     
     protected void setAttributeSet(AttributeSet attr) {
-        //
-        int xStart = maintext.getSelectionStart();
-        int xFinish = maintext.getSelectionEnd();
-        System.out.println(xStart+"   "+ xFinish);
-        if (!maintext.hasFocus()) {
-          //xStart = m_xStart;
-          //xFinish = m_xFinish;
-        }
-        if (xStart != xFinish) {
-         doc.setCharacterAttributes(xStart, xFinish - xStart, 
-            attr, true);
-        } 
-        else {
-          MutableAttributeSet inputAttributes = 
-        		  maintext.getInputAttributes();
-          inputAttributes.addAttributes(attr);
-        }
+    	//if (m_skipUpdate)
+    	      //return;
+    	    int xStart = maintext.getSelectionStart();
+    	    int xFinish = maintext.getSelectionEnd();
+    	    if (!maintext.hasFocus()) {
+    	      //xStart = m_xStart;
+    	      //xFinish = m_xFinish;
+    	    }
+    	    if (xStart != xFinish) {
+    	      doc.setCharacterAttributes(xStart, xFinish - xStart, 
+    	        attr, false);
+    	    } 
+    	    else {
+    	    	//doc.setCharacterAttributes(xStart, xFinish - xStart,
+    	    }
       }
     
     
@@ -283,7 +346,7 @@ public void createToolbar(){
 	   //Action action = new AbstractAction("someActionCommand", someIcon) {
     letterbutton = new JButton(letterIcon);
     //button.setActionCommand(SOMETHING_ELSE);
-    letterbutton.setToolTipText("±€¿⁄ ∏æÁ");
+    letterbutton.setToolTipText("Í∏ÄÏûêÎ™®Ïñë");
     
     letterbutton.addActionListener(new AbstractAction("someActionCommand", paragraphIcon) {
     	@Override
@@ -301,7 +364,7 @@ public void createToolbar(){
 	   //Action action = new AbstractAction("someActionCommand", someIcon) {
     paragraphbutton = new JButton(paragraphIcon);
     //button.setActionCommand(SOMETHING_ELSE);
-    paragraphbutton.setToolTipText("πÆ¥‹ ∏æÁ");
+    paragraphbutton.setToolTipText("Îã®ÎùΩÎ™®Ïñë");
     
     
     paragraphbutton.addActionListener(new AbstractAction("someActionCommand", paragraphIcon) {
@@ -317,7 +380,7 @@ public void createToolbar(){
 	   //Action action = new AbstractAction("someActionCommand", someIcon) {
 	multicolumnbutton = new JButton(multicolumnIcon);
  //button.setActionCommand(SOMETHING_ELSE);
-	multicolumnbutton.setToolTipText("¥Ÿ¥‹");
+	multicolumnbutton.setToolTipText("Îã§Îã®");
  
  
 	multicolumnbutton.addActionListener(new AbstractAction("someActionCommand", multicolumnIcon) {
@@ -340,7 +403,7 @@ public void createToolbar(){
 
     //zoom
     JLabel jLabel3 = new JLabel();
-	jLabel3.setText("»Æ¥Î");
+	jLabel3.setText("ÌÅ¨Í∏∞");
     tb2.add(jLabel3);
 
     
@@ -354,14 +417,14 @@ public void createToolbar(){
     tb2.add(jcbSelectZoom);
     
     JLabel jLabel2 = new JLabel();
-	//jLabel2.setText("≈©±‚");
+	//jLabel2.setText("?ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ");
     //
     
     //load fonts
     jcbFont = new javax.swing.JComboBox();
     jcbFont.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
     loadFont();
-    jcbFont.setSelectedItem("µ∏øÚ");
+    jcbFont.setSelectedItem("ÎèãÏõÄ");
     
     jcbSelectSize = new javax.swing.JComboBox();
     
@@ -395,7 +458,7 @@ public void createToolbar(){
     Icon bold = new ImageIcon(getClass().getResource("res/bold.png"));
     boldIcon.setIcon(bold);
     boldIcon.setMargin(new Insets(0, 0, 0, 0));
-    boldIcon.setToolTipText("¡¯«œ∞‘");
+    boldIcon.setToolTipText("ÍµµÍ≤å");
     
 	 
     //tb.add(boldIcon);
@@ -403,7 +466,7 @@ public void createToolbar(){
     italicIcon = new JToggleButton();
     Icon italic = new ImageIcon(getClass().getResource("res/italic.png"));
     italicIcon.setIcon(italic);
-    italicIcon.setToolTipText("±‚øÔ¿”");
+    italicIcon.setToolTipText("Í∏∞Ïö∏ÏûÑ");
     italicIcon.setMargin(new Insets(0, 0, 0, 0));
     
      
@@ -412,20 +475,9 @@ public void createToolbar(){
     underlineIcon = new JToggleButton();
     Icon underline = new ImageIcon(getClass().getResource("res/underline.png"));
     underlineIcon.setIcon(underline);
-    underlineIcon.setToolTipText("πÿ¡Ÿ");
+    underlineIcon.setToolTipText("Î∞ëÏ§Ñ");
     underlineIcon.setMargin(new Insets(0, 0, 0, 0));
     
-    underlineIcon.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			if (underlineIcon.isSelected()) {
-				underlineIcon.setIcon(new ImageIcon(getClass().getResource("res/underline_p.png")));
-				//lblStatus.setText("State : on");
-			} else {
-				underlineIcon.setIcon(new ImageIcon(getClass().getResource("res/underline.png")));
-				//lblStatus.setText("State : off");
-			}
-		}
-	});
     
     //tb.add(underlineIcon);
     
@@ -457,17 +509,7 @@ public void createToolbar(){
     bothalignIcon.setIcon(bothalign);
     bothalignIcon.setMargin(new Insets(0, 0, 0, 0));
     
-    bothalignIcon.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			if (bothalignIcon.isSelected()) {
-				bothalignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifyblock.png")));
-				//lblStatus.setText("State : on");
-			} else {
-				bothalignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifyblock.png")));
-				//lblStatus.setText("State : off");
-			}
-		}
-	});
+   
 	 
     //tb.add(italicIcon);
     
@@ -482,6 +524,110 @@ public void createToolbar(){
     Icon centeralign = new ImageIcon(getClass().getResource("res/justifycenter.png"));
     centeralignIcon.setIcon(centeralign);
     centeralignIcon.setMargin(new Insets(0, 0, 0, 0));
+    
+    boldIcon.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+
+				MutableAttributeSet attr = new SimpleAttributeSet();
+		        StyleConstants.setBold(attr, boldIcon.isSelected());
+		        setAttributeSet(attr);
+		}
+	});
+	
+	italicIcon.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			MutableAttributeSet attr = new SimpleAttributeSet();
+	        StyleConstants.setItalic(attr, italicIcon.isSelected());
+	        setAttributeSet(attr);    					
+			
+		}
+	});
+	
+	underlineIcon.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			MutableAttributeSet attr = new SimpleAttributeSet();
+	        StyleConstants.setUnderline(attr, underlineIcon.isSelected());
+	        setAttributeSet(attr);  
+		}
+	});
+    
+	colorAction = new AbstractAction("someActionCommand", colorIcon) {
+	     @Override
+	    public void actionPerformed(ActionEvent e) {
+	        // do something.
+	    	 Color jColor = selectColor;
+	         // open color dialog and select Color
+	         if ((jColor = JColorChooser.showDialog(null, "?ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ?ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ?ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ?ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ"
+	         		+ "", jColor)) != null) {
+	             selectColor = jColor;
+	             // set text color
+	             //maintext.setForeground(selectColor);
+	             SimpleAttributeSet attr = new SimpleAttributeSet();
+	             StyleConstants.setForeground(attr, jColor);
+	             setAttributeSet(attr);
+
+	         }
+	    }
+	};
+	tb2.add(colorAction);
+	
+    leftalignIcon.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			if (leftalignIcon.isSelected()) {
+				MutableAttributeSet attr = new SimpleAttributeSet();
+		        
+		        StyleConstants.setAlignment(attr, StyleConstants.ALIGN_LEFT);
+		        //setAttributeSet(attr);
+		        int xStart = maintext.getSelectionStart();
+	            int xFinish = maintext.getSelectionEnd();
+	            doc.setParagraphAttributes(xStart, xFinish-xStart, attr, false);
+			}
+		}
+	});
+    
+    rightalignIcon.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			if (rightalignIcon.isSelected()) {
+				MutableAttributeSet attr = new SimpleAttributeSet();
+		        
+		        StyleConstants.setAlignment(attr, StyleConstants.ALIGN_RIGHT);
+		        //setAttributeSet(attr);
+		        int xStart = maintext.getSelectionStart();
+	            int xFinish = maintext.getSelectionEnd();
+	            doc.setParagraphAttributes(xStart, xFinish-xStart, attr, false);
+			}
+		}
+	});
+    
+    centeralignIcon.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			if (centeralignIcon.isSelected()) {
+				centeralignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifycenter.png")));
+				MutableAttributeSet attr = new SimpleAttributeSet();
+		        
+		        StyleConstants.setAlignment(attr, StyleConstants.ALIGN_CENTER);
+		        int xStart = maintext.getSelectionStart();
+	            int xFinish = maintext.getSelectionEnd();
+		        doc.setParagraphAttributes(xStart, xFinish-xStart, attr, false);
+			}
+		}
+	});
+    
+    bothalignIcon.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			if (bothalignIcon.isSelected()) {
+				bothalignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifycenter.png")));
+				MutableAttributeSet attr = new SimpleAttributeSet();
+		        
+		        StyleConstants.setAlignment(attr, StyleConstants.ALIGN_JUSTIFIED);
+		        int xStart = maintext.getSelectionStart();
+	            int xFinish = maintext.getSelectionEnd();
+		        doc.setParagraphAttributes(xStart, xFinish-xStart, attr, false);
+			}
+		
+		}
+	});
+
     
     
     JPanel paratools = new JPanel();
@@ -532,6 +678,27 @@ public void createToolbar(){
 
 	
 }
+public void showAttribute(){
+    	//get attributes
+  	  
+      AttributeSet currentattr = new SimpleAttributeSet();
+      currentattr = maintext.getCharacterAttributes();
+      
+      Boolean isBold = StyleConstants.isBold(currentattr);
+      Boolean isItalic = StyleConstants.isItalic(currentattr);
+      Boolean isUnderline = StyleConstants.isUnderline(currentattr);
+      //
+      int alignment = StyleConstants.getAlignment(currentattr);
+      	    	        
+      if (alignment == StyleConstants.ALIGN_JUSTIFIED) bothalignIcon.setSelected(true);
+      	else bothalignIcon.setSelected(false);
+      if (alignment == StyleConstants.ALIGN_CENTER) centeralignIcon.setSelected(true);
+      	else centeralignIcon.setSelected(false);
+      if (alignment == StyleConstants.ALIGN_RIGHT) rightalignIcon.setSelected(true);
+      	else rightalignIcon.setSelected(false);
+      if (alignment == StyleConstants.ALIGN_LEFT) leftalignIcon.setSelected(true);
+      	else leftalignIcon.setSelected(false);
+}
     
     public void createMenu(){
     	JMenuItem   new_blank, open, exit, close, find, replace, about, random, deletefile, resize, save, saveas;
@@ -541,18 +708,38 @@ public void createToolbar(){
     	JMenuBar menuBar = new JMenuBar();
         
         //JMenu menu1    = new JMenu("File");
-    	JMenu menu1    = new JMenu("∆ƒ¿œ(F)");
+    	JMenu menu1    = new JMenu("ÌååÏùº(F)");
         menu1.setMnemonic(KeyEvent.VK_F);
         
         ImageIcon icon_new = new ImageIcon(getClass().getResource("res/new.png"));
-        new_blank     = new JMenuItem("ªıπÆº≠(N)", icon_new);
+        new_blank     = new JMenuItem("ÏÉàÎ¨∏ÏÑú(N)", icon_new);
         new_blank.setMnemonic(KeyEvent.VK_N);
+        new_blank.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                    //System.exit(0);
+            	
+            	MainTextPane maintext = new MainTextPane();
+            	ConPanel centerp = new ConPanel(maintext);
+            	
+
+            	JInternalFrame internalFrame = new JInternalFrame("Ï†úÎ™©ÏóÜÏùå",true,true,true,true);
+            	
+            	
+              	internalFrame.add(centerp,BorderLayout.CENTER);
+              	internalFrame.add(centerp,BorderLayout.CENTER);
+              	
+              	internalFrame.setVisible(true);
+              	container.add(internalFrame, BorderLayout.CENTER);
+
+            }
+        });
+
 
         menu1.add(new_blank);
-
-        
+        //     	
+      	
         ImageIcon icon_open = new ImageIcon(getClass().getResource("res/folder.png"));
-        open     = new JMenuItem("ø≠±‚(O)", icon_open);
+        open     = new JMenuItem("Ïó¥Í∏∞(O)", icon_open);
         open.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                     //System.exit(0);
@@ -563,7 +750,7 @@ public void createToolbar(){
         menu1.add(open);
         
         ImageIcon icon_save = new ImageIcon(getClass().getResource("res/save.png"));
-        save     = new JMenuItem("¿˙¿Â(S)", icon_save);
+        save     = new JMenuItem("Ìé∏Ïßë(S)", icon_save);
         //close     = new JMenuItem("Close");
         save.setMnemonic(KeyEvent.VK_S);
         save.addActionListener(new ActionListener() {
@@ -589,7 +776,7 @@ public void createToolbar(){
         menu1.add(save);
         //
         ImageIcon icon_close = new ImageIcon(getClass().getResource("res/close.png"));
-        close     = new JMenuItem("¥›±‚(C)", icon_close);
+        close     = new JMenuItem("Îã´Í∏∞(C)", icon_close);
         //close     = new JMenuItem("Close");
         close.setMnemonic('C');
         close.addActionListener(new ActionListener() {
@@ -607,21 +794,21 @@ public void createToolbar(){
               
      
         
-        JMenu menu2    = new JMenu("∆Ì¡˝(E)");
+        JMenu menu2    = new JMenu("Ìé∏Ïßë(E)");
                  
             
         menu2.setMnemonic(KeyEvent.VK_E);
         
-        cut_text     = new JMenuItem("¿ﬂ∂Û≥ª±‚");
+        cut_text     = new JMenuItem("ÏûòÎùºÎÇ¥Í∏∞");
               
         menu2.add(cut_text);
         
-        paste_text     = new JMenuItem("∫Ÿø©≥÷±‚");
+        paste_text     = new JMenuItem("Î∂ôÏó¨ÎÑêÍ∏∞");
         
         menu2.add(paste_text);
         
         
-        find     = new JMenuItem("√£±‚(C)", icon_close);
+        find     = new JMenuItem("Îã´Í∏∞(C)", icon_close);
         //close     = new JMenuItem("Close");
         find.setMnemonic(KeyEvent.VK_C);
                 
@@ -651,7 +838,7 @@ public void createToolbar(){
         
         
        //
-        JMenu menu3    = new JMenu("∫∏±‚(V)");
+        JMenu menu3    = new JMenu("Î≥¥Í∏∞(V)");
         menu3.setMnemonic(KeyEvent.VK_V);
         
         parsym = new JCheckBoxMenuItem("view para sym");
@@ -660,18 +847,18 @@ public void createToolbar(){
         
         
         menuBar.add(menu3);
-        fullscreen     = new JMenuItem("¿¸√º»≠∏È");
+        fullscreen     = new JMenuItem("Ï†ÑÏ≤¥ÌôîÎ©¥");
         menu3.add(fullscreen);
         
-        JMenu menu4 = new JMenu("¿‘∑¬(D)");
+        JMenu menu4 = new JMenu("Î≥¥ÌÜµ(D)");
         menu4.setMnemonic(KeyEvent.VK_D);
         
-        JMenu menu5 = new JMenu("µµ±∏(T)");
+        JMenu menu5 = new JMenu("ÎèÑÍµ¨(T)");
         menu5.setMnemonic(KeyEvent.VK_T);
         
-        JMenu menu6    = new JMenu("µµøÚ∏ª(H)");
+        JMenu menu6    = new JMenu("ÎèÑÏõÄÎßê(H)");
         menu6.setMnemonic('H');
-        about     = new JMenuItem("¡§∫∏(A)");
+        about     = new JMenuItem("Ï†ïÎ≥¥(A)");
         about.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                //     editor__.paste();
@@ -695,9 +882,21 @@ public void createToolbar(){
     }
       
     
-    HaneolWord(){
-    	this.setTitle("«—æÛøˆµÂ«¡∑Œººº≠");
+      
+    HaneolWord() throws IOException{
+    	
+    	
+    	//checkUpdate();
+    	
+    	this.setTitle("ÌïúÏñºÏõåÎìúÌîÑÎ°úÏÑ∏ÏÑú");
     	this.setSize(800, 600); // this is important
+    	
+    	ImageIcon img = new ImageIcon(getClass().getResource("res/new_logo.png"));
+
+    	//Then set it to your JFrame with setIconImage():
+
+    	this.setIconImage(img.getImage());
+    	
     	//
     	//iinialize Dialogs
     	m_paragraphDialog = new ParagraphDialog(this);
@@ -728,9 +927,9 @@ public void createToolbar(){
         //
 	    
 	    //initialize attributes
-	    final SimpleAttributeSet attr=new SimpleAttributeSet();
+	    SimpleAttributeSet attr=new SimpleAttributeSet();
 	    StyleConstants.setFontSize(attr, 18);
-	    StyleConstants.setFontFamily(attr, "µ∏øÚ");
+	    StyleConstants.setFontFamily(attr, "ÎèãÏõÄ");
 	    StyleConstants.setLineSpacing(attr, 0.6f);
 	    //
 	    attr.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.FALSE);
@@ -744,8 +943,8 @@ public void createToolbar(){
             StyleConstants.setFontFamily(attr,"Lucida Bright");
             doc.insertString(doc.getLength(), "Lucida Bright font test\n", attr);
 
-            StyleConstants.setFontFamily(attr,"µ∏øÚ");
-            doc.insertString(doc.getLength(), "µ∏øÚ√º ≈◊Ω∫∆Æ\n", attr);
+            StyleConstants.setFontFamily(attr,"ÎèãÏõÄ");
+            doc.insertString(doc.getLength(), "ÎèãÏõÄÏ≤¥ Îç∞Ìä∏Ïä§ Î¨∏ÏûêÏó¥ÏûÖÎãàÎã§", attr);
             
             //
         }
@@ -776,7 +975,7 @@ public void createToolbar(){
     	
     	    	    	
     	//top wrapper
-    	JPanel container = new JPanel();
+    	
     	container.setBackground(Color.WHITE);
     	//container.setLayout(new BoxLayout(container, BoxLayout.PAGE_AXIS));
     	container.setLayout(new BorderLayout());
@@ -799,25 +998,51 @@ public void createToolbar(){
     	toolbarwrap.add(tb2);
     	//toolbarwrap.add(ruler);
     	//
- 	    container.add(toolbarwrap, BorderLayout.NORTH);
+ 	    //scroll pane
     	
-    	JScrollPane scroll = new JScrollPane(maintext);
-      	scroll.setViewportView(maintext);
+    	//scrollPane = new JScrollPane(maintext);
+        scrollPane.setViewportView(maintext);
+ 	    //scrollPane.setViewportView(desktop);
     	
-    	//container.add(scroll, BorderLayout.CENTER);
+    	//container.add(scrollPane, BorderLayout.CENTER);
       	centerp.add(ruler, BorderLayout.NORTH);
-      	centerp.add(scroll, BorderLayout.CENTER);
-      	container.add(centerp, BorderLayout.CENTER);
-    	
+      	centerp.add(scrollPane, BorderLayout.CENTER);
+      	
+      	
+      	//
+      	//container.add(centerp, BorderLayout.CENTER);
+      	container.add(toolbarwrap, BorderLayout.PAGE_START);
+ 	    //container.add(desktop, BorderLayout.CENTER);
+ 	    container.add(statusBar, BorderLayout.PAGE_END);
+ 	    
+      	 
     	//wrapper
     	JPanel left = new JPanel();
     	left.setBackground(new Color(245, 245, 245));
     	left.setPreferredSize(new Dimension(30, this.getHeight()));
     	
     	// left blank space
-    	container.add(left, BorderLayout.WEST);
+    	//container.add(left, BorderLayout.WEST);
     	//
-    	this.add(container);
+    	
+    	
+    	internalFrame = new JInternalFrame("Ï†úÎ™©ÏóÜÏùå",true,true,true,true);
+    	
+    	
+      	internalFrame.add(centerp,BorderLayout.CENTER);
+      	container.add(internalFrame, BorderLayout.CENTER);
+      	
+      	//internalFrame.setSize(internalFrame.getMaximumSize());
+      	//internalFrame.pack();
+      	internalFrame.setVisible(true);
+      	
+      	
+    	this.add(container, BorderLayout.CENTER);
+      	//this.add(internalFrame);
+      	
+      	//internalFrame.setSize(400,300);
+        
+      	
     	setDefaultCloseOperation(EXIT_ON_CLOSE);
     	
     	
@@ -847,19 +1072,11 @@ public void createToolbar(){
 
     	        public void caretUpdate(CaretEvent e) {
     	          //System.out.println(e);
-    	          //get attributes
-    	            int xStart = maintext.getSelectionStart();
-	  	            int xFinish = maintext.getSelectionEnd();
-	  	            doc.setParagraphAttributes(xStart, xFinish-xStart, attr, false);
-	    	        Element current = doc.getCharacterElement(xStart);
-	    	        AttributeSet currentattr = new SimpleAttributeSet();
-	    	        currentattr = current.getAttributes();
+    	          // toolbar state update by current attributes
+    	          showAttribute();
+    	    
 	    	        
-	    	        //AttributeSet attrs =((StyledEditorKit)pane.getEditorKit()).getInputAttributes();
-	    	        System.out.println("Is bold: " + String.valueOf(StyleConstants.isBold(currentattr)));
-	    	   
-    	        
-    	        
+	    	    
 
     	        }
     	      });
@@ -875,8 +1092,8 @@ public void createToolbar(){
     				//Change font of text
     				String getName = jcbFont.getSelectedItem().toString();
     				//MutableAttributeSet attr = new SimpleAttributeSet();
-    		        StyleConstants.setFontFamily(attr, getName);
-    		       	setAttributeSet(attr);
+    		        //StyleConstants.setFontFamily(attr, getName);
+    		       	//setAttributeSet(attr);
     		       	
     		        
     			}
@@ -890,11 +1107,11 @@ public void createToolbar(){
     			private void jcbSelectSizeActionPerformed(ActionEvent evt) {
     				// TODO Auto-generated method stub
 
-    		        String getSize = jcbSelectSize.getSelectedItem().toString();
-    		        StyleConstants.setFontSize(attr, Integer.parseInt(getSize));
+    		        //String getSize = jcbSelectSize.getSelectedItem().toString();
+    		        //StyleConstants.setFontSize(attr, Integer.parseInt(getSize));
     		        //StyledDocument doc = (StyledDocument) maintext.getDocument();
     		    	//doc.setCharacterAttributes(0, doc.getLength(), attr, false);
-    		    	setAttributeSet(attr);
+    		    	//setAttributeSet(attr);
     				
     			}
     	    });
@@ -922,7 +1139,7 @@ public void createToolbar(){
     	            s = s.substring(0, s.length() - 1);
     	            double scale = new Double(s).doubleValue() / 100;
     	            maintext.getDocument().putProperty("ZOOM_FACTOR",new Double(scale));
-
+    	            AttributeSet attr = maintext.getCharacterAttributes();
     	            try {
     	                StyledDocument doc=(StyledDocument)maintext.getDocument();
     	            	//TableDocument doc=(TableDocument)maintext.getDocument();
@@ -938,109 +1155,68 @@ public void createToolbar(){
     		
 
     		
-    		boldIcon.addActionListener(new ActionListener() {
-    			public void actionPerformed(ActionEvent e) {
-    				if (boldIcon.isSelected()) {
-    					boldIcon.setIcon(new ImageIcon(getClass().getResource("res/bold_p.png")));
-    					//lblStatus.setText("State : on");
-    					attr.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.TRUE);
-        		    	setAttributeSet(attr);
+    		   	    
+    		
+    		maintext.addKeyListener(new KeyListener() {
 
-    				
-    				} else {
-    					boldIcon.setIcon(new ImageIcon(getClass().getResource("res/bold.png")));
-    					//lblStatus.setText("State : off");
-    					attr.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.FALSE);
-        		    	setAttributeSet(attr);
-    				}
-    			}
-    		});
-    		
-    		italicIcon.addActionListener(new ActionListener() {
-    			public void actionPerformed(ActionEvent e) {
-    				if (italicIcon.isSelected()) {
-    					italicIcon.setIcon(new ImageIcon(getClass().getResource("res/italic_p.png")));
-    					//lblStatus.setText("State : on");
-    					attr.addAttribute(StyleConstants.CharacterConstants.Italic, Boolean.TRUE);
-        		    	setAttributeSet(attr);
+				@Override
+				public void keyPressed(KeyEvent e) {
+					// TODO Auto-generated method stub
+					if ( (e.getKeyCode() == KeyEvent.VK_L) && ((e.getModifiers() & KeyEvent.ALT_MASK) != 0)) {
+	                    //System.out.println("woot!");
+						 m_fontDialog.setVisible(true);
+					}
+					else if ( (e.getKeyCode() == KeyEvent.VK_F) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+	                    //System.out.println("woot!");
+						 m_findDialog.setVisible(true);
+					}
+	                
+				}
 
-    				} else {
-    					italicIcon.setIcon(new ImageIcon(getClass().getResource("res/italic.png")));
-    					//lblStatus.setText("State : off");
-    					attr.addAttribute(StyleConstants.CharacterConstants.Italic, Boolean.FALSE);
-        		    	setAttributeSet(attr);
-    					
-    				}
-    			}
+				@Override
+				public void keyReleased(KeyEvent arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void keyTyped(KeyEvent arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+    			
+    			
+    			
     		});
-    		colorAction = new AbstractAction("someActionCommand", colorIcon) {
-    		     @Override
-    		    public void actionPerformed(ActionEvent e) {
-    		        // do something.
-    		    	 Color jColor = selectColor;
-    		         // open color dialog and select Color
-    		         if ((jColor = JColorChooser.showDialog(null, "ªˆªÛ º±≈√"
-    		         		+ "", jColor)) != null) {
-    		             selectColor = jColor;
-    		             // set text color
-    		             //maintext.setForeground(selectColor);
-    		             //SimpleAttributeSet aset = new SimpleAttributeSet();
-    		             StyleConstants.setForeground(attr, jColor);
-        		    	 setAttributeSet(attr);
     		
-    		         }
-    		    }
-    		};
-    		tb2.add(colorAction);
     		
-    	    leftalignIcon.addActionListener(new ActionListener() {
-    			public void actionPerformed(ActionEvent e) {
-    				if (leftalignIcon.isSelected()) {
-    					leftalignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifyleft.png")));
-    					//lblStatus.setText("State : on");
-    					StyleConstants.setAlignment(attr, StyleConstants.ALIGN_LEFT);
-        	            int xStart = maintext.getSelectionStart();
-        	            int xFinish = maintext.getSelectionEnd();
-        	            doc.setParagraphAttributes(xStart, xFinish-xStart, attr, true);
-    				} else {
-    					leftalignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifyleft.png")));
-    					//lblStatus.setText("State : off");
-    				}
-    			}
-    		});
-    	    
-    	    rightalignIcon.addActionListener(new ActionListener() {
-    			public void actionPerformed(ActionEvent e) {
-    				if (rightalignIcon.isSelected()) {
-    					rightalignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifyright.png")));
-    					//lblStatus.setText("State : on");
-    					StyleConstants.setAlignment(attr, StyleConstants.ALIGN_RIGHT);
-        	            int xStart = maintext.getSelectionStart();
-        	            int xFinish = maintext.getSelectionEnd();
-        	            doc.setParagraphAttributes(xStart, xFinish-xStart, attr, false);
-    				} else {
-    					rightalignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifyright.png")));
-    					//lblStatus.setText("State : off");
-    				}
-    			}
-    		});
-    	    
-    	    centeralignIcon.addActionListener(new ActionListener() {
-    			public void actionPerformed(ActionEvent e) {
-    				if (centeralignIcon.isSelected()) {
-    					centeralignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifycenter.png")));
-    					//lblStatus.setText("State : on");
-    					StyleConstants.setAlignment(attr, StyleConstants.ALIGN_CENTER);
-        	            int xStart = maintext.getSelectionStart();
-        	            int xFinish = maintext.getSelectionEnd();
-        	            doc.setParagraphAttributes(xStart, xFinish-xStart, attr, false);
-    				} else {
-    					centeralignIcon.setIcon(new ImageIcon(getClass().getResource("res/justifycenter.png")));
-    					//lblStatus.setText("State : off");
-    				}
-    			}
-    		});
-    	    
+    		KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(
+    		            KeyEvent.VK_Z, Event.CTRL_MASK);
+    		KeyStroke redoKeyStroke = KeyStroke.getKeyStroke(
+    		            KeyEvent.VK_Y, Event.CTRL_MASK);
+    		    
+    		//
+    		
+    		
+    	    doc.addUndoableEditListener(new UndoableEditListener() {
+    	        @Override
+    	        public void undoableEditHappened(UndoableEditEvent e) {
+    	            m_undo.addEdit(e.getEdit());
+    	        }
+    	    });
+    	    //
+    	    // Map undo action
+    	    maintext.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+    	            .put(undoKeyStroke, "undoKeyStroke");
+    	    maintext.getActionMap().put("undoKeyStroke", new AbstractAction() {
+    	        @Override
+    	        public void actionPerformed(ActionEvent e) {
+    	            try {
+    	                m_undo.undo();
+    	             } catch (CannotUndoException cue) {}
+    	        }
+    	    });
+
     	 // setting center screen for this form
             Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
             this.setLocation(size.width / 2 - this.getWidth() / 2,
@@ -1052,6 +1228,28 @@ public void createToolbar(){
     	
     }
 
+    
+	@Override
+	public void keyPressed(KeyEvent arg0) {
+			// TODO Auto-generated method stub
+		
+		
+			
+	}
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {
+			// TODO Auto-generated method stub
+			
+	}
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
+			// TODO Auto-generated method stub
+			
+	}
+	
+	
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
@@ -1094,6 +1292,7 @@ public void createToolbar(){
 }
 
 
+
 class MainTextPane extends JTextPane{
 	public Insets insets;
 	int linex;
@@ -1120,23 +1319,7 @@ class MainTextPane extends JTextPane{
 	@Override 
 	public void paint (Graphics g){
 		super.paint(g);
-		
-		//setPreferredSize(new Dimension(this.getWidth(), this.getHeight()));
-		//g.setColor(Color.black);
-		//g.drawLine(0, 200, 800, 200);
-		
-		Graphics2D g2d = (Graphics2D) g;
-		g2d.setColor(Color.LIGHT_GRAY);
-		
-		float[] dashingPattern1 = {2f, 2f};
-		//Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
-		 //       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
-		g2d.setStroke(new BasicStroke(0.2f, BasicStroke.CAP_BUTT,
-		        BasicStroke.JOIN_MITER, 1f, dashingPattern1, 0.2f));
-		g2d.draw(new Line2D.Float(0, 200, 800, 200));
-		    
-		
-		
+	
 	}
 
 	
@@ -1219,10 +1402,11 @@ class CustomEditorKit extends StyledEditorKit {
                 }
                 else if (kind.equals(AbstractDocument.ParagraphElementName)) {
                     
-                	return new ParagraphView(elem);
+                	return new PagingParagraphView(elem);
                 }
                 else if (kind.equals(AbstractDocument.SectionElementName)) {
-                    return new ScaledView(elem, View.Y_AXIS);
+                    //return new ScaledView(elem, View.Y_AXIS);
+                	return new SectionView(elem, View.Y_AXIS);
                 	
                 }
                 else if (kind.equals(StyleConstants.ComponentElementName)) {
@@ -1251,6 +1435,8 @@ class CustomEditorKit extends StyledEditorKit {
 
 //-----------------------------------------------------------------
 class ScaledView extends BoxView {
+	
+	
     public ScaledView(Element elem, int axis) {
         super(elem, axis);
     }
@@ -1326,4 +1512,228 @@ class ScaledView extends BoxView {
     }
 
 }
+
+/**
+* Creates a view from an element that spans the supplied axis
+* @param element
+* @param axis
+*/
+class  SectionView extends BoxView{
+	int pageNumber=0;
+
+	protected static final int PAGE_WIDTH = 800;
+	protected static final int PAGE_HEIGHT = 1200;
+	
+	protected static final int PAGE_INSET = 20;
+	protected static final Insets PAGE_MARGIN = new Insets(10, 10, 10, 10);
+	protected static final Color BACKGROUND = Color.GRAY;
+	
+	
+	public SectionView(Element element, int axis) {
+	super(element, axis);
+	 
+	// apply insets to width but not top/bottom as it distorts
+	// breaking calculations
+	setInsets((short) (0),
+	(short) (PAGE_INSET + PAGE_MARGIN.left),
+	(short) (0),
+	(short) (PAGE_INSET + PAGE_MARGIN.right));
+	}
+	 
+	 
+	protected void layout(int width, int height) {
+	width = PAGE_WIDTH - 2 * PAGE_INSET - PAGE_MARGIN.left - PAGE_MARGIN.right;
+	super.layout(width, height);
+	}
+	
+	protected int calculatePageBreak(int pageNumber) {
+		int pageBreak = (pageNumber * PAGE_HEIGHT) - PAGE_INSET - PAGE_MARGIN.bottom;
+		return pageBreak;
+	}
+	 
+	 
+	public float getPreferredSpan(int axis) {
+		float span = 0;
+		if (axis == View.X_AXIS) {
+		span = PAGE_WIDTH;
+		} else {
+		span = pageNumber * PAGE_HEIGHT;
+		}
+		return span;
+	}
+	 
+	 
+	public float getMinimumSpan(int axis) {
+		return getPreferredSpan(axis);
+	}
+	 
+	 
+	public float getMaximumSpan(int axis) {
+		return getPreferredSpan(axis);
+	}
+	 
+	 
+	protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) 
+	{
+	super.layoutMajorAxis(targetSpan, axis, offsets, spans);
+		 
+		int totalOffset = PAGE_INSET + PAGE_MARGIN.top;
+		int pageBreak;
+		pageNumber = 1;
+		PagingParagraphView view;
+	 
+		for (int i = 0; i < offsets.length; i++) {
+			//System.out.println(offsets[i]+" "+spans[i]);
+		}
+		for (int i = 0; i < offsets.length; i++) {
+			offsets[i] = totalOffset;
+			pageBreak = calculatePageBreak(pageNumber);
+			 
+			view = (PagingParagraphView) getView(i);
+			//totalOffset is equal to paragraphOffset
+			view.setPargraphOffset(totalOffset);
+			view.setStartPage(pageNumber);
+			 
+			if ((spans[i] + offsets[i]) > pageBreak) {
+				view.layout(view.getWidth(), getHeight());
+				pageNumber = view.getEndPage();
+				spans[i] += view.getAdjustedSpan();
+			}
+			//System.out.println(spans[i]);
+			 
+			totalOffset = offsets[i] + spans[i];
+			System.out.println(totalOffset);
+		}
+	}
+	public void paint(Graphics g, Shape a) {
+		super.paint(g, a);
+		 
+		Rectangle alloc = (a instanceof Rectangle) ? (Rectangle) a : a.getBounds();
+		Rectangle page = new Rectangle(alloc.x, alloc.y, PAGE_WIDTH, PAGE_HEIGHT);
+		 
+		for (int i = 0; i < pageNumber; i++) {
+			page.y = alloc.y + PAGE_HEIGHT * i;
+			//if (page.intersects(alloc))
+			//paintPageFrame(g, page);
+	
+			Graphics2D g2d = (Graphics2D) g;
+			g2d.setColor(Color.LIGHT_GRAY);
+			g.setFont(new Font("TimesRoman", Font.PLAIN, 12)); 
+				//g.drawLine(page.x, page.y, page.x+ page.width, page.y);
+			float[] dashingPattern1 = {2f, 2f};
+			//Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
+			 //       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
+			g2d.setStroke(new BasicStroke(0.2f, BasicStroke.CAP_BUTT,
+			        BasicStroke.JOIN_MITER, 1f, dashingPattern1, 0.2f));
+			g2d.draw(new Line2D.Float(page.x, page.y, page.x+ page.width, page.y));
+			//g.drawLine(page.x, page.y, page.x+ page.width, page.y);
+			 String sN = Integer.toString(i + 1);             
+	         String pageStr = "ÌéòÏù¥ÏßÄ:" + sN;
+	         //pageStr += " of " + sC;
+	         if (i == pageNumber-1){
+	        	 g.drawString(pageStr, page.width - 50,
+	                      				page.y + page.height - 18);
+	         } else g.drawString(pageStr, page.width - 50, page.y + page.height - 3);
+	        
+		}
+	}
+}
+
+
+class PagingParagraphView extends ParagraphView {
+	private int startPage, endPage;
+	private int adjustedSpan;
+	private int paragraphOffset;
+	
+	protected static final int PAGE_WIDTH = 800;
+	protected static final int PAGE_HEIGHT = 1200;
+	
+	protected static final int PAGE_INSET = 20;
+	protected static final Insets PAGE_MARGIN = new Insets(10, 10, 10, 10);
+	protected static final Color BACKGROUND = Color.GRAY;
+	
+	 
+	public PagingParagraphView(Element elem) {
+		super(elem);
+			 
+			startPage = 1;
+			endPage = 1;
+			adjustedSpan = 0;
+			paragraphOffset = 0;
+		}
+	
+		protected int calculatePageBreak(int pageNumber) {
+			int pageBreak = (pageNumber * PAGE_HEIGHT) - PAGE_INSET - PAGE_MARGIN.bottom;
+			return pageBreak;
+		}
+		 
+		 
+		public void setStartPage(int sp) {
+			startPage = sp;
+		}
+		 
+		 
+		public int getEndPage() {
+			return endPage;
+		}
+		 
+		 
+		public int getAdjustedSpan() {
+			return adjustedSpan;
+		}
+		 
+		 
+		public void setPargraphOffset(int po) {
+			paragraphOffset = po;
+		}
+		 
+		 
+		public void layout(int width, int height) {
+			super.layout(width, height);
+		}
+		 
+		 
+		protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) 
+		{
+			super.layoutMajorAxis(targetSpan, axis, offsets, spans);
+			//System.out.println(endPage);
+		    // initial paragraph is 30
+			if (paragraphOffset != 0) {
+				endPage = startPage;
+				// initial relative break
+				int relativeBreak = calculatePageBreak(endPage) - paragraphOffset;
+				int correctedOffset;
+				adjustedSpan = 0;
+				//System.out.println(endPage);
+				for (int i = 0; i < offsets.length; i++) {
+				// determine the location of the page break
+				 
+					if (offsets[i] + spans[i] > relativeBreak) {
+						correctedOffset = relativeBreak
+								+ PAGE_MARGIN.bottom + (2 * PAGE_INSET) + PAGE_MARGIN.top
+								- offsets[i];
+						 
+						for (int j = i; j < offsets.length; j++) {
+							offsets[j] += correctedOffset;
+							//
+							
+						}
+						System.out.println("corrected offset: "+correctedOffset);
+						adjustedSpan = correctedOffset;
+						endPage++;
+						//relativeBreak = calculatePageBreak(endPage) - paragraphOffset;
+						relativeBreak = endPage * PAGE_HEIGHT - 20 - 10 - paragraphOffset;
+						
+						System.out.println("paragraph offset: "+paragraphOffset);
+						System.out.println("adjusted Span: "+adjustedSpan);
+						System.out.println("end page: "+endPage);
+						System.out.println("relative break: "+relativeBreak);
+						
+					}
+				}
+			}
+		}
+	
+}
+
 

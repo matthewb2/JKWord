@@ -59,35 +59,34 @@ protected JCheckBox m_chkSuperscript;
 protected JComboBox m_cbColor;
 protected JLabel m_preview;
 
-public FontDialog(JFrame parent, 
- String[] names, String[] sizes)
+public FontDialog(JFrame parent,  String[] names, String[] sizes)
 {
- super(parent, "Font", true);
+ super(parent, "글꼴", true);
  getContentPane().setLayout(new BoxLayout(getContentPane(), 
    BoxLayout.Y_AXIS));
 
  JPanel p = new JPanel(new GridLayout(1, 2, 10, 2));
- p.setBorder(new TitledBorder(new EtchedBorder(), "Font"));
- m_lstFontName = new OpenList(names, "Name:");
+ p.setBorder(new TitledBorder(new EtchedBorder(), "글꼴"));
+ m_lstFontName = new OpenList(names, "이름:");
  p.add(m_lstFontName);
 
- m_lstFontSize = new OpenList(sizes, "Size:");
+ m_lstFontSize = new OpenList(sizes, "크기:");
  p.add(m_lstFontSize);
  getContentPane().add(p);
 
  p = new JPanel(new GridLayout(2, 3, 10, 5));
- p.setBorder(new TitledBorder(new EtchedBorder(), "Effects"));
- m_chkBold = new JCheckBox("Bold");
+ p.setBorder(new TitledBorder(new EtchedBorder(), "효과"));
+ m_chkBold = new JCheckBox("굵게");
  p.add(m_chkBold);
- m_chkItalic = new JCheckBox("Italic");
+ m_chkItalic = new JCheckBox("기울임");
  p.add(m_chkItalic);
- m_chkUnderline = new JCheckBox("Underline");
+ m_chkUnderline = new JCheckBox("밑줄");
  p.add(m_chkUnderline);
- m_chkStrikethrough = new JCheckBox("Strikeout");
+ m_chkStrikethrough = new JCheckBox("선명한");
  p.add(m_chkStrikethrough);
- m_chkSubscript = new JCheckBox("Subscript");
+ m_chkSubscript = new JCheckBox("아래첨자");
  p.add(m_chkSubscript);
- m_chkSuperscript = new JCheckBox("Superscript");
+ m_chkSuperscript = new JCheckBox("윗첨자");
  p.add(m_chkSuperscript);
  getContentPane().add(p);
 
@@ -95,7 +94,7 @@ public FontDialog(JFrame parent,
  p = new JPanel();
  p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
  p.add(Box.createHorizontalStrut(10));
- p.add(new JLabel("Color:"));
+ p.add(new JLabel("색상:"));
  p.add(Box.createHorizontalStrut(20));
  m_cbColor = new JComboBox();
 
@@ -115,8 +114,8 @@ public FontDialog(JFrame parent,
  getContentPane().add(p);
 
  p = new JPanel(new BorderLayout());
- p.setBorder(new TitledBorder(new EtchedBorder(), "Preview"));
- m_preview = new JLabel("Preview Font", JLabel.CENTER);
+ p.setBorder(new TitledBorder(new EtchedBorder(), "미리보기"));
+ m_preview = new JLabel("미리보기 글꼴", JLabel.CENTER);
  m_preview.setBackground(Color.white);
  m_preview.setForeground(Color.black);
  m_preview.setOpaque(true);
@@ -127,7 +126,7 @@ public FontDialog(JFrame parent,
 
  p = new JPanel(new FlowLayout());
  JPanel p1 = new JPanel(new GridLayout(1, 2, 10, 2));
- JButton btOK = new JButton("OK");
+ JButton btOK = new JButton("확인");
  ActionListener lst = new ActionListener() { 
    public void actionPerformed(ActionEvent e) {
      m_option = JOptionPane.OK_OPTION;
@@ -137,7 +136,7 @@ public FontDialog(JFrame parent,
  btOK.addActionListener(lst);
  p1.add(btOK);
 
- JButton btCancel = new JButton("Cancel");
+ JButton btCancel = new JButton("취소");
  lst = new ActionListener() { 
    public void actionPerformed(ActionEvent e) {
      m_option = JOptionPane.CANCEL_OPTION;
@@ -162,81 +161,81 @@ public FontDialog(JFrame parent,
      updatePreview();
    }
  };
- m_lstFontName.addListSelectionListener(lsel);
- m_lstFontSize.addListSelectionListener(lsel);
-
- lst = new ActionListener() { 
-   public void actionPerformed(ActionEvent e) {
-     updatePreview();
-   }
- };
- m_chkBold.addActionListener(lst);
- m_chkItalic.addActionListener(lst);
- m_cbColor.addActionListener(lst);
+	 m_lstFontName.addListSelectionListener(lsel);
+	 m_lstFontSize.addListSelectionListener(lsel);
+	
+	 lst = new ActionListener() { 
+	   public void actionPerformed(ActionEvent e) {
+	     updatePreview();
+	   }
+	 };
+	 m_chkBold.addActionListener(lst);
+	 m_chkItalic.addActionListener(lst);
+	 m_cbColor.addActionListener(lst);
 }
 
 public void setAttributes(AttributeSet a) {
- m_attributes = new SimpleAttributeSet(a);
- String name = StyleConstants.getFontFamily(a);
- m_lstFontName.setSelected(name);
- int size = StyleConstants.getFontSize(a);
- m_lstFontSize.setSelectedInt(size);
- m_chkBold.setSelected(StyleConstants.isBold(a));
- m_chkItalic.setSelected(StyleConstants.isItalic(a));
- m_chkUnderline.setSelected(StyleConstants.isUnderline(a));
- m_chkStrikethrough.setSelected(
-   StyleConstants.isStrikeThrough(a));
- m_chkSubscript.setSelected(StyleConstants.isSubscript(a));
- m_chkSuperscript.setSelected(StyleConstants.isSuperscript(a));
- m_cbColor.setSelectedItem(StyleConstants.getForeground(a));
- updatePreview();
+	 m_attributes = new SimpleAttributeSet(a);
+	 String name = StyleConstants.getFontFamily(a);
+	 m_lstFontName.setSelected(name);
+	 int size = StyleConstants.getFontSize(a);
+	 m_lstFontSize.setSelectedInt(size);
+	 m_chkBold.setSelected(StyleConstants.isBold(a));
+	 m_chkItalic.setSelected(StyleConstants.isItalic(a));
+	 m_chkUnderline.setSelected(StyleConstants.isUnderline(a));
+	 m_chkStrikethrough.setSelected(
+	   StyleConstants.isStrikeThrough(a));
+	 m_chkSubscript.setSelected(StyleConstants.isSubscript(a));
+	 m_chkSuperscript.setSelected(StyleConstants.isSuperscript(a));
+	 m_cbColor.setSelectedItem(StyleConstants.getForeground(a));
+	 updatePreview();
 }
 
 public AttributeSet getAttributes() {
- if (m_attributes == null)
-   return null;
- StyleConstants.setFontFamily(m_attributes, 
-   m_lstFontName.getSelected());
- StyleConstants.setFontSize(m_attributes, 
-   m_lstFontSize.getSelectedInt());
- StyleConstants.setBold(m_attributes, 
-   m_chkBold.isSelected());
- StyleConstants.setItalic(m_attributes, 
-   m_chkItalic.isSelected());
- StyleConstants.setUnderline(m_attributes, 
-   m_chkUnderline.isSelected());
- StyleConstants.setStrikeThrough(m_attributes, 
-   m_chkStrikethrough.isSelected());
- StyleConstants.setSubscript(m_attributes, 
-   m_chkSubscript.isSelected());
- StyleConstants.setSuperscript(m_attributes, 
-   m_chkSuperscript.isSelected());
- StyleConstants.setForeground(m_attributes, 
-   (Color)m_cbColor.getSelectedItem());
- return m_attributes;
+	 if (m_attributes == null)
+	   return null;
+	 StyleConstants.setFontFamily(m_attributes, 
+	   m_lstFontName.getSelected());
+	 StyleConstants.setFontSize(m_attributes, 
+	   m_lstFontSize.getSelectedInt());
+	 StyleConstants.setBold(m_attributes, 
+	   m_chkBold.isSelected());
+	 StyleConstants.setItalic(m_attributes, 
+	   m_chkItalic.isSelected());
+	 StyleConstants.setUnderline(m_attributes, 
+	   m_chkUnderline.isSelected());
+	 StyleConstants.setStrikeThrough(m_attributes, 
+	   m_chkStrikethrough.isSelected());
+	 StyleConstants.setSubscript(m_attributes, 
+	   m_chkSubscript.isSelected());
+	 StyleConstants.setSuperscript(m_attributes, 
+	   m_chkSuperscript.isSelected());
+	 StyleConstants.setForeground(m_attributes, 
+	   (Color)m_cbColor.getSelectedItem());
+	 return m_attributes;
 }
 
 public int getOption() { return m_option; }
 
 protected void updatePreview() {
- String name = m_lstFontName.getSelected();
- int size = m_lstFontSize.getSelectedInt();
- if (size <= 0)
-   return;
- int style = Font.PLAIN;
- if (m_chkBold.isSelected())
-   style |= Font.BOLD;
- if (m_chkItalic.isSelected())
-   style |= Font.ITALIC;
-
- // Bug Alert! This doesn't work if only style is changed.
- Font fn = new Font(name, style, size);
- m_preview.setFont(fn);
-
- Color c = (Color)m_cbColor.getSelectedItem();
- m_preview.setForeground(c);
- m_preview.repaint();
-}
+	 String name = m_lstFontName.getSelected();
+	 int size = m_lstFontSize.getSelectedInt();
+	 if (size <= 0)
+	   return;
+	 int style = Font.PLAIN;
+	 if (m_chkBold.isSelected())
+	   style |= Font.BOLD;
+	 if (m_chkItalic.isSelected())
+	   style |= Font.ITALIC;
+	
+	 // Bug Alert! This doesn't work if only style is changed.
+	 Font fn = new Font(name, style, size);
+	 m_preview.setFont(fn);
+	
+	 Color c = (Color)m_cbColor.getSelectedItem();
+	 m_preview.setForeground(c);
+	 m_preview.repaint();
+	}
 }
 
 

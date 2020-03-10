@@ -63,27 +63,27 @@ public ParagraphDialog(JFrame parent) {
 	JPanel p = new JPanel(new GridLayout(1, 2, 5, 2));
 	
 	JPanel ps = new JPanel(new GridLayout(3, 2, 10, 2));
-	ps.setBorder(new TitledBorder(new EtchedBorder(), "간격"));
-	ps.add(new JLabel("줄 간격:"));
+	ps.setBorder(new TitledBorder(new EtchedBorder(), "border"));
+	ps.add(new JLabel(":"));
 	m_lineSpacing = new JTextField();
 	ps.add(m_lineSpacing);
-	ps.add(new JLabel("위쪽 간격:"));
+	ps.add(new JLabel("space above:"));
 	m_spaceAbove = new JTextField();
 	ps.add(m_spaceAbove);
-	ps.add(new JLabel("아래쪽 간격:"));
+	ps.add(new JLabel("space below:"));
 	m_spaceBelow = new JTextField();
 	ps.add(m_spaceBelow);
 	p.add(ps);
 	
 	JPanel pi = new JPanel(new GridLayout(3, 2, 10, 2));
-	pi.setBorder(new TitledBorder(new EtchedBorder(), "들여쓰기"));
-	pi.add(new JLabel("첫째 들여쓰기:"));
+	pi.setBorder(new TitledBorder(new EtchedBorder(), "border"));
+	pi.add(new JLabel(":"));
 	m_firstIndent = new JTextField();
 	pi.add(m_firstIndent);
-	pi.add(new JLabel("왼쪽 들여쓰기:"));
+	pi.add(new JLabel(":"));
 	m_leftIndent = new JTextField();
 	pi.add(m_leftIndent);
-	pi.add(new JLabel("오른쪽 들여쓰기:"));
+	pi.add(new JLabel(":"));
 	m_rightIndent = new JTextField();
 	pi.add(m_rightIndent);
 	p.add(pi);
@@ -129,7 +129,7 @@ public ParagraphDialog(JFrame parent) {
 	
 	p = new JPanel(new FlowLayout());
 	JPanel p1 = new JPanel(new GridLayout(1, 2, 10, 2));
-	JButton btOK = new JButton("확인");
+	JButton btOK = new JButton("ok");
 	ActionListener lst = new ActionListener() { 
 	 public void actionPerformed(ActionEvent e) {
 	   m_option = JOptionPane.OK_OPTION;
@@ -139,7 +139,7 @@ public ParagraphDialog(JFrame parent) {
 	btOK.addActionListener(lst);
 	p1.add(btOK);
 	
-	JButton btCancel = new JButton("취소");
+	JButton btCancel = new JButton("cancel");
 	lst = new ActionListener() { 
 	 public void actionPerformed(ActionEvent e) {
 	   m_option = JOptionPane.CANCEL_OPTION;
