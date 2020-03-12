@@ -3,6 +3,7 @@ package oata;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.EventQueue;
@@ -17,6 +18,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +31,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
+import java.beans.PropertyVetoException;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -121,7 +124,8 @@ import oata.CustomEditorKit.StyledViewFactory;
 public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 	
 		static int WIDTH = 800, HEIHGT=1200;
-				
+		static int PAGE_WIDTH =800, PAGE_HEIGHT=1200;
+		
 		protected JInternalFrame internalFrame;
 		
 		protected JDesktopPane desktop = new JDesktopPane();;
@@ -130,7 +134,8 @@ public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 		
 		protected JPanel statusBar = new JPanel();
 	    //
-		protected MainTextPane maintext;
+		//protected MainTextPane maintext;
+		protected JTextPane maintext;
 		protected CustomDocument doc;
 		
 		
@@ -150,6 +155,7 @@ public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 	    Style defaultStyle = sc.getStyle(StyleContext.DEFAULT_STYLE);
 	    Style mainStyle = sc.addStyle("MainStyle", defaultStyle);
 	    //    
+	    JMenuBar menuBar;
 	    JToolBar tb, tb2;
 	    Icon tableIcon, imageIcon, newIcon, openIcon, saveIcon, colorIcon, letterIcon, paragraphIcon, multicolumnIcon;
 	    JToggleButton italicIcon, boldIcon, underlineIcon, leftalignIcon, bothalignIcon, rightalignIcon, centeralignIcon;
@@ -168,7 +174,28 @@ public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 	   
 	    
     public static void main(String[] args) throws IOException {
+    	  try {
+              // Set cross-platform Java L&F (also called "Metal")
+    		  //UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+    		  UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+              //UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+              //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+              
+      } 
+      catch (UnsupportedLookAndFeelException e) {
+         // handle exception
+      }
+      catch (ClassNotFoundException e) {
+         // handle exception
+      }
+      catch (InstantiationException e) {
+         // handle exception
+      }
+      catch (IllegalAccessException e) {
+         // handle exception
+      }
         new HaneolWord();
+        
     }
     
 
@@ -183,7 +210,7 @@ public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 
 		bf = new BufferedReader(new InputStreamReader(url.openStream()));
 
-		int[] current = {0, 1, 2};
+		int[] current = {0, 1, 3};
 		//int num;
 		while((line = bf.readLine())!= null){
 			if (line.contains(" ")) break;
@@ -653,12 +680,12 @@ public void createToolbar(){
     tableIcon = new ImageIcon(getClass().getResource("res/table.png"));
 	   //Action action = new AbstractAction("someActionCommand", someIcon) {
     tableAction = new AbstractAction("someActionCommand", tableIcon) {
-   	     @Override
- 	    public void actionPerformed(ActionEvent e) {
- 	        // do something.
-   	    	 m_tableDialog.setVisible(true);
- 	    }
- 	};
+	   	     @Override
+	 	    public void actionPerformed(ActionEvent e) {
+	 	        // do something.
+		   	    	 m_tableDialog.setVisible(true);
+		 	}
+ 		};
     tb.add(tableAction);
     
 
@@ -673,13 +700,6 @@ public void createToolbar(){
     tb.add(imageAction);
     
 
-
-
-
-
-    
-
-	
 }
 	public void showAttribute(){
     	//get attributes
@@ -704,12 +724,13 @@ public void createToolbar(){
 	}
 
 	public void createNew(){
-		MainTextPane maintext = new MainTextPane();
+		JTextPane maintext = new JTextPane();
 		ConPanel centerp = new ConPanel(maintext);
 		centerp.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		
 		centerp.setLayout(new BorderLayout());
 	    centerp.setBackground(Color.white);
+	    centerp.setAlignmentX(Component.CENTER_ALIGNMENT);
 	                    
 		PanelRuler ruler = new PanelRuler(centerp);
 	   	ruler.setPreferredSize(new Dimension(WIDTH, 19));
@@ -740,7 +761,7 @@ public void createToolbar(){
 	    JMenuItem   cut_text, paste_text, fullscreen, delete, previous, next;
 	    
     	
-    	JMenuBar menuBar = new JMenuBar();
+    	menuBar = new JMenuBar();
         
         //JMenu menu1    = new JMenu("File");
     	JMenu menu1    = new JMenu("파일(F)");
@@ -899,7 +920,7 @@ public void createToolbar(){
         menuBar.add(menu5);
         menuBar.add(menu6);
         
-        setJMenuBar(menuBar);	
+        //setJMenuBar(menuBar);	
         
 
     }
@@ -939,10 +960,10 @@ public void createToolbar(){
 	    Style style = context.getStyle(StyleContext.DEFAULT_STYLE);
 
 	    StyleConstants.setLeftIndent(style, 0);
-	  //JPanel centerp = new JPanel();
+
     	
 	    
-        maintext = new MainTextPane();
+        maintext = new JTextPane();
 	    maintext.setEditorKit(new CustomEditorKit());
         //StyledDocument doc=(StyledDocument)maintext.getDocument();
 	    doc = (CustomDocument) maintext.getDocument();
@@ -988,8 +1009,8 @@ public void createToolbar(){
         }catch (BadLocationException ex) {
         }
 	    */
-    	maintext.setMargin(new Insets(0, (int) (20*3.78f), 0, 0));
-    	maintext.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()));
+    	maintext.setMargin(new Insets(0, (int) (20*3.78f-4.5f), 0, 0));
+    	maintext.setPreferredSize(new Dimension(PAGE_WIDTH, PAGE_HEIGHT));
     	
 	    //  	
 
@@ -999,17 +1020,15 @@ public void createToolbar(){
     	    	    	
     	//top wrapper
     	
-    	container.setBackground(Color.WHITE);
+    	container.setBackground(Color.lightGray);
     	//container.setLayout(new BoxLayout(container, BoxLayout.PAGE_AXIS));
-    	container.setLayout(new BorderLayout());
-    	
+    	//container.setLayout(new BorderLayout());
+    	//
     	ConPanel centerp = new ConPanel(maintext);
     	centerp.setLayout(new BorderLayout());
         centerp.setBackground(Color.white);
-        
-        
-        // textpane size
-        centerp.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()));
+        centerp.setPreferredSize(new Dimension(PAGE_WIDTH, PAGE_HEIGHT));
+        centerp.setAlignmentX(Component.CENTER_ALIGNMENT);
     	    
     	PanelRuler ruler = new PanelRuler(centerp);
        	ruler.setPreferredSize(new Dimension(this.getWidth(), 19));
@@ -1029,35 +1048,44 @@ public void createToolbar(){
       	centerp.add(ruler, BorderLayout.NORTH);
       	centerp.add(scrollPane, BorderLayout.CENTER);
       	
-      	
-      	 
+      	      	 
     	//wrapper
     	JPanel left = new JPanel();
     	left.setBackground(new Color(245, 245, 245));
     	left.setPreferredSize(new Dimension(30, this.getHeight()));
     	
     	// left blank space
-    	//container.add(left, BorderLayout.WEST);
+    	container.add(centerp);
     	//
     	    	
     	internalFrame = new JInternalFrame("제목없음",true,true,true,true);
     	internalFrame.setVisible(true);
     	
-      	internalFrame.add(centerp);
+    	//setJMenuBar(menuBar);
+    	//frame.setJMenuBar(createMenuBar());
+    	internalFrame.setJMenuBar(menuBar);
+    	internalFrame.add(toolbarwrap, BorderLayout.NORTH);
+      	internalFrame.add(container, BorderLayout.CENTER);
+      	internalFrame.add(statusBar, BorderLayout.SOUTH);
       	desktop.add(internalFrame);
       	
       	internalFrame.setSize(internalFrame.getMaximumSize());
       	internalFrame.pack();
+      	try {
+      	  internalFrame.setMaximum(true);
+      	} catch (PropertyVetoException e) {
+      	  // Vetoed by internalFrame
+      	  // ... possibly add some handling for this case
+      	}
       	
-      	
-      	this.add(toolbarwrap, BorderLayout.NORTH);
+      	//this.add(toolbarwrap, BorderLayout.NORTH);
  	    this.add(desktop);
  	    statusBar.setLayout(new FlowLayout(FlowLayout.LEFT));
  	    JLabel jl1 = new JLabel("빈문서1");
 	    jl1.setPreferredSize(new Dimension(100, 20));
  	    statusBar.add(jl1);
  	    
- 	    this.add(statusBar, BorderLayout.SOUTH);
+ 	    //this.add(statusBar, BorderLayout.SOUTH);
       	
     	setDefaultCloseOperation(EXIT_ON_CLOSE);
     	
@@ -1309,87 +1337,58 @@ public void createToolbar(){
 
 
 
-class MainTextPane extends JTextPane{
-	public Insets insets;
-	int linex;
-	int liney;
-	int leftIndent;
-	int leftMargin;
-	//JTextPane maintext;
-	StyledDocument doc;
-	
-	float scale;
-	
-	MainTextPane(){
-		this.linex = 0;
-		this.liney = 0;
-		this.leftIndent = (int) (20*3.78);
-		this.leftMargin = (int) (20*3.78);
-		//this.doc = doc;
-		//this.setPreferredSize(new Dimension(200, 200));
-		//this.maintext.setPreferredSize(new Dimension(200, 300));
-    	
-					
-	}
-		
-	@Override 
-	public void paint (Graphics g){
-		super.paint(g);
-	
-	}
-
-	
-	
-}
-
 class ConPanel extends JPanel{
 	public Insets insets;
 	int linex;
 	int liney;
-	int leftIndent;
-	int leftMargin;
+	int leftIndent, rightIndent;
+	int leftMargin, rightMargin;
 	JTextPane maintext;
 	
-	float scale;
-	
+	protected static final int PAGE_WIDTH = 800;
+	protected static final int PAGE_HEIGHT = 1200;
+		
 	ConPanel(JTextPane maintext){
 		this.linex = 0;
 		this.liney = 0;
 		this.leftIndent = (int) (20*3.78);
-		this.leftMargin = (int) (20*3.78);
+		//llIndent * dotsPermm - 4.5f;
+		this.leftMargin = (int) (20*3.78-4.5f);
+		
+		this.rightIndent = (int) (20*3.78);
+		this.rightMargin = (int) (20*3.78);
 		this.maintext = maintext;
-		//this.setPreferredSize(new Dimension(200, 200));
-		this.maintext.setPreferredSize(new Dimension(200, 300));
+		
+		//this.setPreferredSize(new Dimension(PAGE_WIDTH, PAGE_HEIGHT));
+		//this.maintext.setPreferredSize(new Dimension(200, 300));
     	
 					
 	}
+	
+	
 		
 	@Override 
 	public void paint (Graphics g){
 		super.paint(g);
 		
-		//setPreferredSize(new Dimension(this.getWidth(), this.getHeight()));
-		g.setColor(new Color(245, 245, 245));
-		g.fillRect(800, 0, 1000, this.getHeight());
-		
 	     // right top corner
         g.setColor(Color.darkGray);
-        g.drawRect(800, 0, 1000, 14);
+        //g.drawRect(800, 0, 1000, 14);
 				
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setColor(Color.LIGHT_GRAY);
 		
 		float[] dashingPattern1 = {2f, 2f};
-		//Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
-		 //       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
+		Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
+		       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
 		g2d.setStroke(new BasicStroke(0.2f, BasicStroke.CAP_BUTT,
 		        BasicStroke.JOIN_MITER, 1f, dashingPattern1, 0.2f));
 		g2d.draw(new Line2D.Float(linex, 5, linex, liney));
 		//refresh maintext indents
 		//maintext.getStyledDocument();
-		maintext.setMargin(new Insets(0, leftMargin, 0, 0));
-		
-		
+		int adj=25;
+		maintext.setMargin(new Insets(0, this.leftMargin-adj, 0, 0));
+			
 		
 	}
 	
@@ -1449,85 +1448,6 @@ class CustomEditorKit extends StyledEditorKit {
     }
 }
 
-//-----------------------------------------------------------------
-class ScaledView extends BoxView {
-	
-	
-    public ScaledView(Element elem, int axis) {
-        super(elem, axis);
-    }
-
-    public double getZoomFactor() {
-        Double scale = (Double) getDocument().getProperty("ZOOM_FACTOR");
-        if (scale != null) {
-            return scale.doubleValue();
-        }
-
-        return 1;
-    }
-
-    public void paint(Graphics g, Shape allocation) {
-        Graphics2D g2d = (Graphics2D) g;
-        double zoomFactor = getZoomFactor();
-        AffineTransform old = g2d.getTransform();
-        g2d.scale(zoomFactor, zoomFactor);
-        super.paint(g2d, allocation);
-        g2d.setTransform(old);
-    }
-
-    public float getMinimumSpan(int axis) {
-        float f = super.getMinimumSpan(axis);
-        f *= getZoomFactor();
-        return f;
-    }
-
-    public float getMaximumSpan(int axis) {
-        float f = super.getMaximumSpan(axis);
-        f *= getZoomFactor();
-        return f;
-    }
-
-    public float getPreferredSpan(int axis) {
-        float f = super.getPreferredSpan(axis);
-        f *= getZoomFactor();
-        return f;
-    }
-
-    protected void layout(int width, int height) {
-        super.layout(new Double(width / getZoomFactor()).intValue(),
-                     new Double(height *
-                                getZoomFactor()).intValue());
-    }
-
-    public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
-        double zoomFactor = getZoomFactor();
-        Rectangle alloc;
-        alloc = a.getBounds();
-        Shape s = super.modelToView(pos, alloc, b);
-        alloc = s.getBounds();
-        alloc.x *= zoomFactor;
-        alloc.y *= zoomFactor;
-        alloc.width *= zoomFactor;
-        alloc.height *= zoomFactor;
-
-        return alloc;
-    }
-
-    public int viewToModel(float x, float y, Shape a,
-                           Position.Bias[] bias) {
-        double zoomFactor = getZoomFactor();
-        Rectangle alloc = a.getBounds();
-        x /= zoomFactor;
-        y /= zoomFactor;
-        alloc.x /= zoomFactor;
-        alloc.y /= zoomFactor;
-        alloc.width /= zoomFactor;
-        alloc.height /= zoomFactor;
-
-        return super.viewToModel(x, y, alloc, bias);
-    }
-
-}
 
 /**
 * Creates a view from an element that spans the supplied axis
@@ -1546,20 +1466,32 @@ class  SectionView extends BoxView{
 	
 	
 	public SectionView(Element element, int axis) {
-	super(element, axis);
-	 
-	// apply insets to width but not top/bottom as it distorts
-	// breaking calculations
-	setInsets((short) (0),
-	(short) (PAGE_INSET + PAGE_MARGIN.left),
-	(short) (0),
-	(short) (PAGE_INSET + PAGE_MARGIN.right));
+		super(element, axis);
+		 
+		// apply insets to width but not top/bottom as it distorts
+		// breaking calculations
+		setInsets((short) (0),
+		(short) (PAGE_INSET + PAGE_MARGIN.left),
+		(short) (0),
+		(short) (PAGE_INSET + PAGE_MARGIN.right));
 	}
+	
+    public double getZoomFactor() {
+        Double scale = (Double) getDocument().getProperty("ZOOM_FACTOR");
+        if (scale != null) {
+            return scale.doubleValue();
+        }
+
+        return 1;
+    }
 	 
 	 
 	protected void layout(int width, int height) {
-	width = PAGE_WIDTH - 2 * PAGE_INSET - PAGE_MARGIN.left - PAGE_MARGIN.right;
-	super.layout(width, height);
+	//width = PAGE_WIDTH - 2 * PAGE_INSET - PAGE_MARGIN.left - PAGE_MARGIN.right;
+	//super.layout(width, height);
+	 super.layout(new Double(width / getZoomFactor()).intValue(),
+             new Double(height *
+                        getZoomFactor()).intValue());
 	}
 	
 	protected int calculatePageBreak(int pageNumber) {
@@ -1575,17 +1507,24 @@ class  SectionView extends BoxView{
 		} else {
 		span = pageNumber * PAGE_HEIGHT;
 		}
-		return span;
+		return (float) (span*getZoomFactor());
+		
 	}
 	 
 	 
 	public float getMinimumSpan(int axis) {
-		return getPreferredSpan(axis);
+		float f = super.getMinimumSpan(axis);
+        f *= getZoomFactor();
+		//return getPreferredSpan(axis);
+        return f;
 	}
 	 
 	 
 	public float getMaximumSpan(int axis) {
-		return getPreferredSpan(axis);
+		//return getPreferredSpan(axis);
+		float f = super.getMaximumSpan(axis);
+        f *= getZoomFactor();
+        return f;
 	}
 	 
 	 
@@ -1622,36 +1561,68 @@ class  SectionView extends BoxView{
 		}
 	}
 	public void paint(Graphics g, Shape a) {
-		super.paint(g, a);
-		 
+		//super.paint(g, a);
+		Graphics2D g2d = (Graphics2D) g;
+        double zoomFactor = getZoomFactor();
+        AffineTransform old = g2d.getTransform();
+        g2d.scale(zoomFactor, zoomFactor);
+        super.paint(g2d, a);
+        g2d.setTransform(old);
+		// 
+
 		Rectangle alloc = (a instanceof Rectangle) ? (Rectangle) a : a.getBounds();
 		Rectangle page = new Rectangle(alloc.x, alloc.y, PAGE_WIDTH, PAGE_HEIGHT);
-		 
+
+        //draw out-of-page area
+        g.setColor(new Color(245, 245, 245));
+		//g.fillRect(PAGE_WIDTH+100, 0, PAGE_WIDTH+100, this.getHeight());
+        g.fillRect(page.x+page.width, 0, page.x+page.width, this.getHeight());
+		//
+        
 		for (int i = 0; i < pageNumber; i++) {
 			page.y = alloc.y + PAGE_HEIGHT * i;
-			//if (page.intersects(alloc))
-			//paintPageFrame(g, page);
-	
-			Graphics2D g2d = (Graphics2D) g;
-			g2d.setColor(Color.LIGHT_GRAY);
+					g2d.setColor(Color.LIGHT_GRAY);
 			g.setFont(new Font("TimesRoman", Font.PLAIN, 12)); 
 				//g.drawLine(page.x, page.y, page.x+ page.width, page.y);
 			float[] dashingPattern1 = {2f, 2f};
-			//Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
-			 //       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
-			g2d.setStroke(new BasicStroke(0.2f, BasicStroke.CAP_BUTT,
-			        BasicStroke.JOIN_MITER, 1f, dashingPattern1, 0.2f));
-			g2d.draw(new Line2D.Float(page.x, page.y, page.x+ page.width, page.y));
+			
 			//g.drawLine(page.x, page.y, page.x+ page.width, page.y);
-			 String sN = Integer.toString(i + 1);             
-	         String pageStr = "페이지:" + sN;
+			g.drawLine(0, page.y, page.x+page.width, page.y);
+			String sN = Integer.toString(i+1);             
+	        String pageStr = "페이지:" + sN;
 	         //pageStr += " of " + sC;
-	         if (i == pageNumber-1){
-	        	 g.drawString(pageStr, page.width - 50,
+	        if (i == pageNumber-1){
+	        	 g.drawString(pageStr, page.width,
 	                      				page.y + page.height - 18);
-	         } else g.drawString(pageStr, page.width - 50, page.y + page.height - 3);
+	        } else g.drawString(pageStr, page.width, page.y + page.height - 3);
 	        
 		}
+	}
+    public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
+        double zoomFactor = getZoomFactor();
+        Rectangle alloc;
+        alloc = a.getBounds();
+        Shape s = super.modelToView(pos, alloc, b);
+        alloc = s.getBounds();
+        alloc.x *= zoomFactor;
+        alloc.y *= zoomFactor;
+        alloc.width *= zoomFactor;
+        alloc.height *= zoomFactor;
+
+        return alloc;
+    }
+	 public int viewToModel(float x, float y, Shape a,
+             Position.Bias[] bias) {
+			double zoomFactor = getZoomFactor();
+			Rectangle alloc = a.getBounds();
+			x /= zoomFactor;
+			y /= zoomFactor;
+			alloc.x /= zoomFactor;
+			alloc.y /= zoomFactor;
+			alloc.width /= zoomFactor;
+			alloc.height /= zoomFactor;
+			
+			return super.viewToModel(x, y, alloc, bias);
 	}
 }
 

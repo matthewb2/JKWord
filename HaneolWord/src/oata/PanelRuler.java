@@ -452,8 +452,6 @@ public class PanelRuler extends JPanel implements MouseListener, MouseMotionList
 		    		this.centerp.linex = e.getX();
 		    		this.centerp.liney = this.centerp.getHeight();
 		    		//this.centerp.leftIndent = e.getX();
-		    		
-		    		
 		    		this.centerp.repaint();
 		    		
 		    		
