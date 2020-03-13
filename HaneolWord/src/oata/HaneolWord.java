@@ -18,10 +18,11 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
@@ -31,7 +32,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
-import java.beans.PropertyVetoException;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -57,11 +57,9 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -80,6 +78,7 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
@@ -121,25 +120,15 @@ import oata.CustomEditorKit.StyledViewFactory;
 
 
 
-public class HaneolWord extends JFrame implements MouseListener, KeyListener{
+public class HaneolWord extends JFrame implements MouseListener, KeyListener, ComponentListener{
 	
-		static int WIDTH = 800, HEIHGT=1200;
-		static int PAGE_WIDTH =800, PAGE_HEIGHT=1200;
-		
-		protected JInternalFrame internalFrame;
-		
-		protected JDesktopPane desktop = new JDesktopPane();;
-		//protected JDesktopPane container = new JDesktopPane();
-		protected JPanel container = new JPanel();
-		
-		protected JPanel statusBar = new JPanel();
+		//private MDIDesktopPane desktop = new MDIDesktopPane();
 	    //
-		//protected MainTextPane maintext;
-		protected JTextPane maintext;
-		protected CustomDocument doc;
+		MainTextPane maintext;
+		CustomDocument doc;
 		
 		
-		protected Color selectColor;
+		Color selectColor;
 		
 		protected FontDialog m_fontDialog;
 		protected ParagraphDialog m_paragraphDialog;
@@ -155,7 +144,6 @@ public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 	    Style defaultStyle = sc.getStyle(StyleContext.DEFAULT_STYLE);
 	    Style mainStyle = sc.addStyle("MainStyle", defaultStyle);
 	    //    
-	    JMenuBar menuBar;
 	    JToolBar tb, tb2;
 	    Icon tableIcon, imageIcon, newIcon, openIcon, saveIcon, colorIcon, letterIcon, paragraphIcon, multicolumnIcon;
 	    JToggleButton italicIcon, boldIcon, underlineIcon, leftalignIcon, bothalignIcon, rightalignIcon, centeralignIcon;
@@ -174,28 +162,7 @@ public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 	   
 	    
     public static void main(String[] args) throws IOException {
-    	  try {
-              // Set cross-platform Java L&F (also called "Metal")
-    		  //UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-    		  UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-              //UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-              //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-              
-      } 
-      catch (UnsupportedLookAndFeelException e) {
-         // handle exception
-      }
-      catch (ClassNotFoundException e) {
-         // handle exception
-      }
-      catch (InstantiationException e) {
-         // handle exception
-      }
-      catch (IllegalAccessException e) {
-         // handle exception
-      }
         new HaneolWord();
-        
     }
     
 
@@ -210,7 +177,7 @@ public class HaneolWord extends JFrame implements MouseListener, KeyListener{
 
 		bf = new BufferedReader(new InputStreamReader(url.openStream()));
 
-		int[] current = {0, 1, 3};
+		int[] current = {0, 1, 4};
 		//int num;
 		while((line = bf.readLine())!= null){
 			if (line.contains(" ")) break;
@@ -680,12 +647,12 @@ public void createToolbar(){
     tableIcon = new ImageIcon(getClass().getResource("res/table.png"));
 	   //Action action = new AbstractAction("someActionCommand", someIcon) {
     tableAction = new AbstractAction("someActionCommand", tableIcon) {
-	   	     @Override
-	 	    public void actionPerformed(ActionEvent e) {
-	 	        // do something.
-		   	    	 m_tableDialog.setVisible(true);
-		 	}
- 		};
+   	     @Override
+ 	    public void actionPerformed(ActionEvent e) {
+ 	        // do something.
+   	    	 m_tableDialog.setVisible(true);
+ 	    }
+ 	};
     tb.add(tableAction);
     
 
@@ -700,68 +667,42 @@ public void createToolbar(){
     tb.add(imageAction);
     
 
-}
-	public void showAttribute(){
-    	//get attributes
-	  	  
-	      AttributeSet currentattr = new SimpleAttributeSet();
-	      currentattr = maintext.getCharacterAttributes();
-	      
-	      Boolean isBold = StyleConstants.isBold(currentattr);
-	      Boolean isItalic = StyleConstants.isItalic(currentattr);
-	      Boolean isUnderline = StyleConstants.isUnderline(currentattr);
-	      //
-	      int alignment = StyleConstants.getAlignment(currentattr);
-	      	    	        
-	      if (alignment == StyleConstants.ALIGN_JUSTIFIED) bothalignIcon.setSelected(true);
-	      	else bothalignIcon.setSelected(false);
-	      if (alignment == StyleConstants.ALIGN_CENTER) centeralignIcon.setSelected(true);
-	      	else centeralignIcon.setSelected(false);
-	      if (alignment == StyleConstants.ALIGN_RIGHT) rightalignIcon.setSelected(true);
-	      	else rightalignIcon.setSelected(false);
-	      if (alignment == StyleConstants.ALIGN_LEFT) leftalignIcon.setSelected(true);
-	      	else leftalignIcon.setSelected(false);
-	}
 
-	public void createNew(){
-		JTextPane maintext = new JTextPane();
-		ConPanel centerp = new ConPanel(maintext);
-		centerp.setPreferredSize(new Dimension(WIDTH, HEIGHT));
-		
-		centerp.setLayout(new BorderLayout());
-	    centerp.setBackground(Color.white);
-	    centerp.setAlignmentX(Component.CENTER_ALIGNMENT);
-	                    
-		PanelRuler ruler = new PanelRuler(centerp);
-	   	ruler.setPreferredSize(new Dimension(WIDTH, 19));
+
+
+
+    
+
 	
-	   	JScrollPane scrollPane = new JScrollPane();
-	   	scrollPane.setViewportView(maintext);
-		   
-	  	centerp.add(ruler, BorderLayout.NORTH);
-	  	centerp.add(scrollPane, BorderLayout.CENTER);
-	  	
-		JInternalFrame internalFrame = new JInternalFrame("제목없음",true,true,true,true);
-		
-		
-	  	//
-	  	internalFrame.setVisible(true);
-		
-	  	internalFrame.add(centerp);
-	  	desktop.add(internalFrame);
-	  	
-	  	internalFrame.setSize(internalFrame.getMaximumSize());
-	  	internalFrame.pack();
-	  	
-	
-	}
+}
+public void showAttribute(){
+    	//get attributes
+  	  
+      AttributeSet currentattr = new SimpleAttributeSet();
+      currentattr = maintext.getCharacterAttributes();
+      
+      Boolean isBold = StyleConstants.isBold(currentattr);
+      Boolean isItalic = StyleConstants.isItalic(currentattr);
+      Boolean isUnderline = StyleConstants.isUnderline(currentattr);
+      //
+      int alignment = StyleConstants.getAlignment(currentattr);
+      	    	        
+      if (alignment == StyleConstants.ALIGN_JUSTIFIED) bothalignIcon.setSelected(true);
+      	else bothalignIcon.setSelected(false);
+      if (alignment == StyleConstants.ALIGN_CENTER) centeralignIcon.setSelected(true);
+      	else centeralignIcon.setSelected(false);
+      if (alignment == StyleConstants.ALIGN_RIGHT) rightalignIcon.setSelected(true);
+      	else rightalignIcon.setSelected(false);
+      if (alignment == StyleConstants.ALIGN_LEFT) leftalignIcon.setSelected(true);
+      	else leftalignIcon.setSelected(false);
+}
     
     public void createMenu(){
     	JMenuItem   new_blank, open, exit, close, find, replace, about, random, deletefile, resize, save, saveas;
 	    JMenuItem   cut_text, paste_text, fullscreen, delete, previous, next;
 	    
     	
-    	menuBar = new JMenuBar();
+    	JMenuBar menuBar = new JMenuBar();
         
         //JMenu menu1    = new JMenu("File");
     	JMenu menu1    = new JMenu("파일(F)");
@@ -770,18 +711,10 @@ public void createToolbar(){
         ImageIcon icon_new = new ImageIcon(getClass().getResource("res/new.png"));
         new_blank     = new JMenuItem("새문서(N)", icon_new);
         new_blank.setMnemonic(KeyEvent.VK_N);
-        new_blank.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              	//
-              	createNew();
-	
-	            }
-	        });
-
 
         menu1.add(new_blank);
-        //     	
-      	
+
+        
         ImageIcon icon_open = new ImageIcon(getClass().getResource("res/folder.png"));
         open     = new JMenuItem("열기(O)", icon_open);
         open.addActionListener(new ActionListener() {
@@ -920,7 +853,7 @@ public void createToolbar(){
         menuBar.add(menu5);
         menuBar.add(menu6);
         
-        //setJMenuBar(menuBar);	
+        setJMenuBar(menuBar);	
         
 
     }
@@ -960,10 +893,10 @@ public void createToolbar(){
 	    Style style = context.getStyle(StyleContext.DEFAULT_STYLE);
 
 	    StyleConstants.setLeftIndent(style, 0);
-
+	  //JPanel centerp = new JPanel();
     	
 	    
-        maintext = new JTextPane();
+        maintext = new MainTextPane();
 	    maintext.setEditorKit(new CustomEditorKit());
         //StyledDocument doc=(StyledDocument)maintext.getDocument();
 	    doc = (CustomDocument) maintext.getDocument();
@@ -973,7 +906,7 @@ public void createToolbar(){
 	    //initialize attributes
 	    SimpleAttributeSet attr=new SimpleAttributeSet();
 	    StyleConstants.setFontSize(attr, 18);
-	    StyleConstants.setFontFamily(attr, "돋움");
+	    StyleConstants.setFontFamily(attr, "?������?������");
 	    StyleConstants.setLineSpacing(attr, 0.6f);
 	    //
 	    attr.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.FALSE);
@@ -1009,8 +942,8 @@ public void createToolbar(){
         }catch (BadLocationException ex) {
         }
 	    */
-    	maintext.setMargin(new Insets(0, (int) (20*3.78f-4.5f), 0, 0));
-    	maintext.setPreferredSize(new Dimension(PAGE_WIDTH, PAGE_HEIGHT));
+    	maintext.setMargin(new Insets(0, (int) (20*3.78f), 0, 0));
+    	//maintext.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()));
     	
 	    //  	
 
@@ -1019,19 +952,19 @@ public void createToolbar(){
     	
     	    	    	
     	//top wrapper
-    	
-    	container.setBackground(Color.lightGray);
+    	JPanel container = new JPanel();
+    	container.setBackground(Color.WHITE);
     	//container.setLayout(new BoxLayout(container, BoxLayout.PAGE_AXIS));
-    	//container.setLayout(new BorderLayout());
-    	//
+    	container.setLayout(new BorderLayout());
+    	
     	ConPanel centerp = new ConPanel(maintext);
     	centerp.setLayout(new BorderLayout());
-        centerp.setBackground(Color.white);
-        centerp.setPreferredSize(new Dimension(PAGE_WIDTH, PAGE_HEIGHT));
-        centerp.setAlignmentX(Component.CENTER_ALIGNMENT);
+        //centerp.setBackground(Color.white);
+        
+        
+        // textpane size
+        //centerp.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()));
     	    
-    	PanelRuler ruler = new PanelRuler(centerp);
-       	ruler.setPreferredSize(new Dimension(this.getWidth(), 19));
     	 	
     	//
     	JPanel toolbarwrap = new JPanel();
@@ -1040,53 +973,48 @@ public void createToolbar(){
     	toolbarwrap.add(tb2);
     	//toolbarwrap.add(ruler);
     	//
+ 	    container.add(toolbarwrap, BorderLayout.NORTH);
+ 	    
+
  	    //scroll pane
     	
-    	//scrollPane = new JScrollPane(maintext);
-        scrollPane.setViewportView(maintext);
- 	   
-      	centerp.add(ruler, BorderLayout.NORTH);
+    	scrollPane = new JScrollPane(maintext);
+    	scrollPane.setBackground(new Color(245, 245, 245));
+    	//this is important remove border line
+    	scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    	
+    	PanelRuler ruler = new PanelRuler(centerp);
+       	ruler.setPreferredSize(new Dimension(this.getWidth(), 19));
+       	
+       	
+ 	    JPanel rulerwrapper = new JPanel();
+ 	    rulerwrapper.setBackground(new Color(245, 245, 245));
+ 	    
+ 	    rulerwrapper.setLayout(new FlowLayout());
+ 	    //JPanel leftspace = new JPanel();
+ 	    //
+ 	    rulerwrapper.add(ruler);
+ 	    //rulerwrapper.setBorder(null);
+ 	    rulerwrapper.setBorder(BorderFactory.createEmptyBorder());
+ 	    //
+ 	    
+ 	    //centerp.setBorder(null);
+ 	    centerp.add(rulerwrapper, BorderLayout.NORTH);
       	centerp.add(scrollPane, BorderLayout.CENTER);
-      	
-      	      	 
+      	container.add(centerp, BorderLayout.CENTER);
+    	
     	//wrapper
     	JPanel left = new JPanel();
     	left.setBackground(new Color(245, 245, 245));
     	left.setPreferredSize(new Dimension(30, this.getHeight()));
     	
     	// left blank space
-    	container.add(centerp);
+    	//container.add(left, BorderLayout.WEST);
     	//
-    	    	
-    	internalFrame = new JInternalFrame("제목없음",true,true,true,true);
-    	internalFrame.setVisible(true);
+    	this.add(container);
     	
-    	//setJMenuBar(menuBar);
-    	//frame.setJMenuBar(createMenuBar());
-    	internalFrame.setJMenuBar(menuBar);
-    	internalFrame.add(toolbarwrap, BorderLayout.NORTH);
-      	internalFrame.add(container, BorderLayout.CENTER);
-      	internalFrame.add(statusBar, BorderLayout.SOUTH);
-      	desktop.add(internalFrame);
-      	
-      	internalFrame.setSize(internalFrame.getMaximumSize());
-      	internalFrame.pack();
-      	try {
-      	  internalFrame.setMaximum(true);
-      	} catch (PropertyVetoException e) {
-      	  // Vetoed by internalFrame
-      	  // ... possibly add some handling for this case
-      	}
-      	
-      	//this.add(toolbarwrap, BorderLayout.NORTH);
- 	    this.add(desktop);
- 	    statusBar.setLayout(new FlowLayout(FlowLayout.LEFT));
- 	    JLabel jl1 = new JLabel("빈문서1");
-	    jl1.setPreferredSize(new Dimension(100, 20));
- 	    statusBar.add(jl1);
- 	    
- 	    //this.add(statusBar, BorderLayout.SOUTH);
-      	
+    	this.addComponentListener(this);
+    	
     	setDefaultCloseOperation(EXIT_ON_CLOSE);
     	
     	
@@ -1266,10 +1194,51 @@ public void createToolbar(){
             this.setLocation(size.width / 2 - this.getWidth() / 2,
                     size.height / 2 - this.getHeight() / 2);
             //loadFont();
-            this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            //this.setExtendedState(JFrame.MAXIMIZED_BOTH);
     	
     	
     	
+    }
+    
+	@Override
+	public void componentHidden(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void componentMoved(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		adjustMaintext();
+		
+	}
+
+
+
+	@Override
+	public void componentShown(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+			repaint();
+	}
+    
+    public void componentResized(ComponentEvent e) {
+        //System.out.println(e.getComponent().getClass().getName() + " --- Resized ");
+    	adjustMaintext();
+    }
+    
+    public void adjustMaintext(){
+    	 if (this.getWidth()>800){
+	        	int leftSpace = (this.getWidth()-800)/2-10;
+	        	int rightSpace = (this.getWidth()-800)/2-23;
+	        	scrollPane.setViewportBorder(BorderFactory.createEmptyBorder(0, leftSpace, 0, rightSpace));
+	        } else{
+	        	
+	            //	int emptySpace = (this.getWidth()-800)/2;
+	            	scrollPane.setViewportBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+	            	            
+	        }
     }
 
     
@@ -1331,64 +1300,90 @@ public void createToolbar(){
 		// TODO Auto-generated method stub
 		
 	}
+
+
+
+
 	    
     
 }
 
 
 
-class ConPanel extends JPanel{
+class MainTextPane extends JTextPane{
 	public Insets insets;
 	int linex;
 	int liney;
-	int leftIndent, rightIndent;
-	int leftMargin, rightMargin;
-	JTextPane maintext;
+	int leftIndent;
+	int leftMargin;
+	//JTextPane maintext;
+	StyledDocument doc;
 	
-	protected static final int PAGE_WIDTH = 800;
-	protected static final int PAGE_HEIGHT = 1200;
-		
-	ConPanel(JTextPane maintext){
+	float scale;
+	
+	MainTextPane(){
 		this.linex = 0;
 		this.liney = 0;
 		this.leftIndent = (int) (20*3.78);
-		//llIndent * dotsPermm - 4.5f;
-		this.leftMargin = (int) (20*3.78-4.5f);
-		
-		this.rightIndent = (int) (20*3.78);
-		this.rightMargin = (int) (20*3.78);
-		this.maintext = maintext;
-		
-		//this.setPreferredSize(new Dimension(PAGE_WIDTH, PAGE_HEIGHT));
+		this.leftMargin = (int) (20*3.78);
+		//this.doc = doc;
+		//this.setPreferredSize(new Dimension(200, 200));
 		//this.maintext.setPreferredSize(new Dimension(200, 300));
     	
 					
 	}
+		
+	@Override 
+	public void paint (Graphics g){
+		super.paint(g);
+	
+	}
+
 	
 	
+}
+
+class ConPanel extends JPanel{
+	public Insets insets;
+	int linex;
+	int liney;
+	int leftIndent;
+	int leftMargin;
+	JTextPane maintext;
+	
+	float scale;
+	
+	ConPanel(JTextPane maintext){
+		this.linex = 0;
+		this.liney = 0;
+		this.leftIndent = (int) (20*3.78);
+		this.leftMargin = (int) (20*3.78);
+		this.maintext = maintext;
+		//this.setPreferredSize(new Dimension(200, 200));
+		this.maintext.setPreferredSize(new Dimension(200, 300));
+    	
+					
+	}
 		
 	@Override 
 	public void paint (Graphics g){
 		super.paint(g);
 		
-	     // right top corner
-        g.setColor(Color.darkGray);
-        //g.drawRect(800, 0, 1000, 14);
-				
+		
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setColor(Color.LIGHT_GRAY);
 		
 		float[] dashingPattern1 = {2f, 2f};
-		Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
-		       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
+		//Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
+		 //       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
 		g2d.setStroke(new BasicStroke(0.2f, BasicStroke.CAP_BUTT,
 		        BasicStroke.JOIN_MITER, 1f, dashingPattern1, 0.2f));
 		g2d.draw(new Line2D.Float(linex, 5, linex, liney));
 		//refresh maintext indents
 		//maintext.getStyledDocument();
-		int adj=25;
-		maintext.setMargin(new Insets(0, this.leftMargin-adj, 0, 0));
-			
+		maintext.setMargin(new Insets(0, leftMargin, 0, 0));
+		
+		
 		
 	}
 	
@@ -1448,6 +1443,85 @@ class CustomEditorKit extends StyledEditorKit {
     }
 }
 
+//-----------------------------------------------------------------
+class ScaledView extends BoxView {
+	
+	
+    public ScaledView(Element elem, int axis) {
+        super(elem, axis);
+    }
+
+    public double getZoomFactor() {
+        Double scale = (Double) getDocument().getProperty("ZOOM_FACTOR");
+        if (scale != null) {
+            return scale.doubleValue();
+        }
+
+        return 1;
+    }
+
+    public void paint(Graphics g, Shape allocation) {
+        Graphics2D g2d = (Graphics2D) g;
+        double zoomFactor = getZoomFactor();
+        AffineTransform old = g2d.getTransform();
+        g2d.scale(zoomFactor, zoomFactor);
+        super.paint(g2d, allocation);
+        g2d.setTransform(old);
+    }
+
+    public float getMinimumSpan(int axis) {
+        float f = super.getMinimumSpan(axis);
+        f *= getZoomFactor();
+        return f;
+    }
+
+    public float getMaximumSpan(int axis) {
+        float f = super.getMaximumSpan(axis);
+        f *= getZoomFactor();
+        return f;
+    }
+
+    public float getPreferredSpan(int axis) {
+        float f = super.getPreferredSpan(axis);
+        f *= getZoomFactor();
+        return f;
+    }
+
+    protected void layout(int width, int height) {
+        super.layout(new Double(width / getZoomFactor()).intValue(),
+                     new Double(height *
+                                getZoomFactor()).intValue());
+    }
+
+    public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
+        double zoomFactor = getZoomFactor();
+        Rectangle alloc;
+        alloc = a.getBounds();
+        Shape s = super.modelToView(pos, alloc, b);
+        alloc = s.getBounds();
+        alloc.x *= zoomFactor;
+        alloc.y *= zoomFactor;
+        alloc.width *= zoomFactor;
+        alloc.height *= zoomFactor;
+
+        return alloc;
+    }
+
+    public int viewToModel(float x, float y, Shape a,
+                           Position.Bias[] bias) {
+        double zoomFactor = getZoomFactor();
+        Rectangle alloc = a.getBounds();
+        x /= zoomFactor;
+        y /= zoomFactor;
+        alloc.x /= zoomFactor;
+        alloc.y /= zoomFactor;
+        alloc.width /= zoomFactor;
+        alloc.height /= zoomFactor;
+
+        return super.viewToModel(x, y, alloc, bias);
+    }
+
+}
 
 /**
 * Creates a view from an element that spans the supplied axis
@@ -1466,32 +1540,20 @@ class  SectionView extends BoxView{
 	
 	
 	public SectionView(Element element, int axis) {
-		super(element, axis);
-		 
-		// apply insets to width but not top/bottom as it distorts
-		// breaking calculations
-		setInsets((short) (0),
-		(short) (PAGE_INSET + PAGE_MARGIN.left),
-		(short) (0),
-		(short) (PAGE_INSET + PAGE_MARGIN.right));
+	super(element, axis);
+	 
+	// apply insets to width but not top/bottom as it distorts
+	// breaking calculations
+	setInsets((short) (0),
+	(short) (PAGE_INSET + PAGE_MARGIN.left),
+	(short) (0),
+	(short) (PAGE_INSET + PAGE_MARGIN.right));
 	}
-	
-    public double getZoomFactor() {
-        Double scale = (Double) getDocument().getProperty("ZOOM_FACTOR");
-        if (scale != null) {
-            return scale.doubleValue();
-        }
-
-        return 1;
-    }
 	 
 	 
 	protected void layout(int width, int height) {
 	//width = PAGE_WIDTH - 2 * PAGE_INSET - PAGE_MARGIN.left - PAGE_MARGIN.right;
-	//super.layout(width, height);
-	 super.layout(new Double(width / getZoomFactor()).intValue(),
-             new Double(height *
-                        getZoomFactor()).intValue());
+	super.layout(width, height);
 	}
 	
 	protected int calculatePageBreak(int pageNumber) {
@@ -1507,24 +1569,17 @@ class  SectionView extends BoxView{
 		} else {
 		span = pageNumber * PAGE_HEIGHT;
 		}
-		return (float) (span*getZoomFactor());
-		
+		return span;
 	}
 	 
 	 
 	public float getMinimumSpan(int axis) {
-		float f = super.getMinimumSpan(axis);
-        f *= getZoomFactor();
-		//return getPreferredSpan(axis);
-        return f;
+		return getPreferredSpan(axis);
 	}
 	 
 	 
 	public float getMaximumSpan(int axis) {
-		//return getPreferredSpan(axis);
-		float f = super.getMaximumSpan(axis);
-        f *= getZoomFactor();
-        return f;
+		return getPreferredSpan(axis);
 	}
 	 
 	 
@@ -1561,68 +1616,34 @@ class  SectionView extends BoxView{
 		}
 	}
 	public void paint(Graphics g, Shape a) {
-		//super.paint(g, a);
-		Graphics2D g2d = (Graphics2D) g;
-        double zoomFactor = getZoomFactor();
-        AffineTransform old = g2d.getTransform();
-        g2d.scale(zoomFactor, zoomFactor);
-        super.paint(g2d, a);
-        g2d.setTransform(old);
-		// 
-
+		super.paint(g, a);
+		 
 		Rectangle alloc = (a instanceof Rectangle) ? (Rectangle) a : a.getBounds();
 		Rectangle page = new Rectangle(alloc.x, alloc.y, PAGE_WIDTH, PAGE_HEIGHT);
-
-        //draw out-of-page area
-        g.setColor(new Color(245, 245, 245));
-		//g.fillRect(PAGE_WIDTH+100, 0, PAGE_WIDTH+100, this.getHeight());
-        g.fillRect(page.x+page.width, 0, page.x+page.width, this.getHeight());
-		//
-        
+		 
 		for (int i = 0; i < pageNumber; i++) {
 			page.y = alloc.y + PAGE_HEIGHT * i;
-					g2d.setColor(Color.LIGHT_GRAY);
+			//if (page.intersects(alloc))
+			//paintPageFrame(g, page);
+	
+			Graphics2D g2d = (Graphics2D) g;
+			g2d.setColor(Color.LIGHT_GRAY);
 			g.setFont(new Font("TimesRoman", Font.PLAIN, 12)); 
 				//g.drawLine(page.x, page.y, page.x+ page.width, page.y);
 			float[] dashingPattern1 = {2f, 2f};
-			
-			//g.drawLine(page.x, page.y, page.x+ page.width, page.y);
-			g.drawLine(0, page.y, page.x+page.width, page.y);
-			String sN = Integer.toString(i+1);             
-	        String pageStr = "페이지:" + sN;
+			//Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT,
+			 //       BasicStroke.JOIN_MITER, 1.0f, dashingPattern1, 2.0f);
+			//g2d.draw(new Line2D.Float(0, page.y, page.x+ page.width, page.y));
+			g.drawLine(0, page.y, page.x+ page.width, page.y);
+			 String sN = Integer.toString(i + 1);             
+	         String pageStr = "페이지:" + sN;
 	         //pageStr += " of " + sC;
-	        if (i == pageNumber-1){
+	         if (i == pageNumber-1){
 	        	 g.drawString(pageStr, page.width,
 	                      				page.y + page.height - 18);
-	        } else g.drawString(pageStr, page.width, page.y + page.height - 3);
+	         } else g.drawString(pageStr, page.width, page.y + page.height - 3);
 	        
 		}
-	}
-    public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
-        double zoomFactor = getZoomFactor();
-        Rectangle alloc;
-        alloc = a.getBounds();
-        Shape s = super.modelToView(pos, alloc, b);
-        alloc = s.getBounds();
-        alloc.x *= zoomFactor;
-        alloc.y *= zoomFactor;
-        alloc.width *= zoomFactor;
-        alloc.height *= zoomFactor;
-
-        return alloc;
-    }
-	 public int viewToModel(float x, float y, Shape a,
-             Position.Bias[] bias) {
-			double zoomFactor = getZoomFactor();
-			Rectangle alloc = a.getBounds();
-			x /= zoomFactor;
-			y /= zoomFactor;
-			alloc.x /= zoomFactor;
-			alloc.y /= zoomFactor;
-			alloc.width /= zoomFactor;
-			alloc.height /= zoomFactor;
-			
-			return super.viewToModel(x, y, alloc, bias);
 	}
 }
 
