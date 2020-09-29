@@ -17,6 +17,7 @@
     <target name="jar">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/NeoHaneol.jar" basedir="build/classes">
+			<zipgroupfileset dir="${libs.dir}" includes="**/*.jar" />
             <manifest>
                 <attribute name="Main-Class" value="oata.NeoHaneol"/>
             </manifest>
