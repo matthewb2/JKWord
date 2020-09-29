@@ -1,0 +1,45 @@
+﻿2020/3/3.0.1.1
+2020/3/10.0.1.2
+2020/3/11.0.1.3
+2020/3/13.0.1.4
+2020/3/15.0.1.8 //modified ruler scaling position 
+2020/3/16.0.1.9 // added caret position on status bar. matched right end ruler
+2020/3/17.0.1.10 // added paragraph symbol. fixed page info on status bar
+2020/3/18.0.1.11 // changed paragraph symbol color to light blue
+2020/3/21.0.1.12 // added style function
+2020/3/22.0.1.12 // fixed ruler
+2020/3/23.0.1.12 // added modifying mode in the text area
+2020/3/25.0.1.13 // added find and replace menu
+2020/3/31.0.1.14 // modified color button to toggle button
+2020/4/9.0.3.2 // picture save and open features
+2020/4/10.0.3.3 // added the feature that user can merge the cells of a table.
+2020/4/11.0.3.4 // modified ruler to pop the border up
+2020/4/12.0.3.5 // modified cursor color
+2020/4/13.0.3.6 // modified slider on the staus bar
+2020/4/21.0.3.7 // add print dilaog
+2020/4/22.0.3.8 // modified save file menu
+2020/4/23.0.3.9 // modified page setup dialog
+2020/4/24.0.3.10 // added popup menu for images
+2020/4/26.0.3.11 // added preference
+2020/4/27.0.3.12 // added config file
+2020/4/28.0.3.13 // zoom bug fixed 
+2020/4/29.0.3.14 // modified toolbar
+2020/4/30.0.3.15 // modified letter form dialog
+2020/5/1.0.3.16 // fixed the text selection bug
+2020/5/2.0.4.1 // fixed zooming bugs
+2020/5/3.0.4.2 // fixed printing environment
+2020/5/4.0.4.3 // set default font to Nanum
+2020/5/5.0.5.0 // modified the ruler 
+2020/5/6.0.5.1 // added print preview 
+2020/5/7.0.5.2 // modified the ruler indent
+2020/5/8.0.5.3 // fixed the ruler indents
+2020/5/9.0.5.4 // fixed main icon
+2020/5/10.0.5.5 // fixed the function of openning a new document
+2020/5/11.0.5.6 // fixed print preview resolution
+2020/5/12.0.5.7 // fixed print paper and resolution bug
+2020/5/13.0.5.8 // fixed zoom combobox editable
+2020/5/25.0.5.9 // fixed title of frame when open a document
+2020/5/26.0.5.10 // added the multi-column feature
+2020/5/27.0.5.11 // added status mode in view menu
+
+
