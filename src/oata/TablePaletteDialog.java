@@ -25,11 +25,13 @@ public class TablePaletteDialog extends JDialog implements MouseListener, MouseM
 	int pwidth, pheight, pdistance, border;
 	int col, row;
 	JPanel container;
+	NeoHaneol owner;
 	
 	JButton moreColorsButton = new JButton();
 	
-	public TablePaletteDialog(int x, int y)
+	public TablePaletteDialog(NeoHaneol owner, int x, int y)
 	{
+		this.owner = owner;
 		setSize(155, 155);				
 		//
 		getRootPane().setBorder( BorderFactory.createLineBorder(Color.black));

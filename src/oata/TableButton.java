@@ -15,14 +15,16 @@ import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 
-public class TableButton extends Button implements MouseListener
+public class TableButton extends JButton implements MouseListener
 {
     Color centerColor=Color.black;
 
     public TableButton()
     {
     	addMouseListener(this);
+    	
     	
     }
     
@@ -63,6 +65,7 @@ public class TableButton extends Button implements MouseListener
 		invalidate();
 	}
 	public void paint(Graphics g){
+		super.paint(g);
     	//
         Rectangle r = this.getBounds();
         //

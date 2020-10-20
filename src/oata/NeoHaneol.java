@@ -146,7 +146,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     public int lastNumber;
     protected ColorButton colorButton1 = new ColorButton();
     protected Color selectColor;
-    protected TableButton tableButton1 = new TableButton();
+    protected TableButton tableButton1;
     
     protected int st, colNumber, rowNumber;
     protected Rectangle taborigin;
@@ -1098,6 +1098,8 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     	
         tb.add(tablebutton);
         */
+        tableButton1 = new TableButton();
+                
         tableButton1.setPreferredSize(new Dimension(35, 21));
         tableButton1.setLocation(new Point(70, 50));
         tableButton1.addMouseListener(new MouseListener(){
@@ -1107,7 +1109,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     			Point p = new Point(selectButton.getX(), selectButton.getY() + selectButton.getHeight());
     	        SwingUtilities.convertPoint(selectButton, p, tb);
     	        SwingUtilities.convertPointToScreen(p,  tb);
-    	        final TablePaletteDialog tlDlg = new TablePaletteDialog((int)p.getX(), (int)p.getY());
+    	        final TablePaletteDialog tlDlg = new TablePaletteDialog(NeoHaneol.this, (int)p.getX(), (int)p.getY());
    		        tlDlg.setUndecorated(true);
    		        tlDlg.setVisible(true);
    		        tlDlg.addComponentListener(new ComponentListener() {
@@ -1160,7 +1162,9 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 				
 			}
         });
+        
         tb.add(tableButton1);
+        
         //
         imageIcon = new ImageIcon(getClass().getResource("res/image.png"));
         imageAction = new AbstractAction("someActionCommand", imageIcon) {
@@ -1197,6 +1201,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     		}
         });
         tb2.add(m_cbStyles);
+        //tb2.setAlwaysOnTop(false);
    	}
     
     protected void setAttributeSet(AttributeSet attr) {
@@ -1609,6 +1614,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
           JMenu menu9    = new JMenu("표(A)");
           menu9.setMnemonic(KeyEvent.VK_A);
           JMenuItem tableProperty     = new JMenuItem("표속성(P)");
+          //tableProperty.setAlwaysOnTop(alwaysOnTopCheck.isSelected())
           tableProperty.setMnemonic(KeyEvent.VK_P);
           tableProperty.addActionListener(new ActionListener() {
 	     	     @Override
@@ -1704,6 +1710,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
           menuBar.add(menu8);
           //
           setJMenuBar(menuBar);	
+          //setAlwaysOnTop(true);
     }
     
     protected void loadImage(){

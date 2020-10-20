@@ -11,7 +11,9 @@ import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
 import java.util.Hashtable;
 
-public class ColorButton extends Button implements MouseListener
+import javax.swing.JButton;
+
+public class ColorButton extends JButton implements MouseListener
 {
     Color centerColor=Color.black;
 
@@ -58,7 +60,8 @@ public class ColorButton extends Button implements MouseListener
 		invalidate();
 	}
 	public void paint(Graphics g){
-    	//
+    	super.paint(g);
+    	
         Rectangle r = this.getBounds();
         //
         byte border = 4;
