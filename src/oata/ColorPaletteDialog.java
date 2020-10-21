@@ -346,7 +346,9 @@ public class ColorPaletteDialog extends JDialog implements MouseListener
 		selectColor = panel.getBackground();
 		//
 		
-		setVisible(false);
+		//setVisible(false);
+		//panel.setVisible(false);
+		//System.out.println("fff");
 	}
 
 
