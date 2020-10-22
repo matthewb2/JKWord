@@ -16,6 +16,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -40,6 +41,7 @@ import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 public class ToolBarEx {
 	NeoHaneol owner;
@@ -48,12 +50,11 @@ public class ToolBarEx {
     //protected JToolBar tb, tb2;
     
     //protected JComboBox zoomCombo;
+	protected JComboBox jcbSelectSize;
+	protected JComboBox jcbSelectSpace;
+	protected JComboBox jcbFont;
     protected int height_max, width_max;
-    //protected JToggleButton leftalignIcon, bothalignIcon, rightalignIcon, centeralignIcon;
-    //protected JToggleButton italicIcon, boldIcon, underlineIcon;
-    protected static JComboBox jcbSelectSize;
-	protected static JComboBox jcbSelectSpace;
-	protected static JComboBox jcbFont;
+    
 	protected Color selectColor;
     protected TableButton tableButton1;
     protected ColorButton colorButton1 = new ColorButton();
@@ -63,16 +64,23 @@ public class ToolBarEx {
     protected int m_xFinish = -1;
     protected String styleName;
     
+    protected JToggleButton leftalignIcon, bothalignIcon, rightalignIcon, centeralignIcon;
+    protected JToggleButton italicIcon, boldIcon, underlineIcon;
+    
+    String fontName[];
     //
 	
 	ToolBarEx(NeoHaneol owner){
 		this.owner = owner;
+	    //load fonts
+        GraphicsEnvironment gEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        fontName = gEnv.getAvailableFontFamilyNames();
+        
 		createToolbar();
 	}
 	
 	public void createToolbar(){
-		final JToggleButton leftalignIcon, bothalignIcon, rightalignIcon, centeralignIcon;
-		final JToggleButton italicIcon, boldIcon, underlineIcon;
+		
 		Icon tableIcon, imageIcon, newIcon, openIcon, saveIcon, printIcon, previewIcon, colorIcon, letterIcon, paragraphIcon, multicolumnIcon;
     	JButton tablebutton, imagebutton, letterbutton, paragraphbutton;
 		final JButton multicolumnbutton;
@@ -175,7 +183,7 @@ public class ToolBarEx {
     	    	 mcd.addComponentListener(new ComponentListener() {
 		 		    public void componentHidden(ComponentEvent e) {
 		 		    	String str= owner.m_monitor.getText();
-		 		    	String font = owner.jcbFont.getSelectedItem().toString();
+		 		    	String font = jcbFont.getSelectedItem().toString();
 		 		    	int fontsize =  Integer.parseInt(jcbSelectSize.getSelectedItem().toString());
     			    	//
     			    	MutableAttributeSet attr = new SimpleAttributeSet();
@@ -226,7 +234,7 @@ public class ToolBarEx {
         JLabel jLabel3 = new JLabel();
     	jLabel3.setText("크기");
         tb2.add(jLabel3);
-        owner.zoomCombo = new javax.swing.JComboBox();
+        //owner.zoomCombo = new javax.swing.JComboBox();
         owner.zoomCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "50%", "80%", "100%", "120%", "150%", "200%" }));
         owner.zoomCombo.setEditable(true);
         owner.zoomCombo.setSelectedItem("100%");
@@ -235,7 +243,6 @@ public class ToolBarEx {
                 String s = (String) owner.zoomCombo.getSelectedItem();
                 s = s.substring(0, s.length() - 1);
                 owner.viewScale = new Double(s).doubleValue() / 100;
-                //
                 owner.m_monitor.getDocument().putProperty("ZOOM_FACTOR", owner.viewScale);
                 // update statusbar
                 owner.spinSlider.update(owner.viewScale);
@@ -251,16 +258,17 @@ public class ToolBarEx {
             }
         });
         
+        
+        
         tb2.add(owner.zoomCombo);
         JLabel jLabel2 = new JLabel();
        
-        //load fonts
-        GraphicsEnvironment gEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        String fontName[] = gEnv.getAvailableFontFamilyNames();
+    
         Integer array[] = new Integer[fontName.length];
         for(int i=1;i<=fontName.length;i++) {
           array[i-1] = i;
         }
+        
         jcbFont = new JComboBox(array);
         ComboBoxRenderar renderar = new ComboBoxRenderar();
         jcbFont.setRenderer(renderar);
@@ -278,9 +286,11 @@ public class ToolBarEx {
         jcbFont.addActionListener(new java.awt.event.ActionListener() {
 	        public void actionPerformed(java.awt.event.ActionEvent evt) {
 	        	//Change font of text
-				String getName = jcbFont.getSelectedItem().toString();
+				int getIndex = jcbFont.getSelectedIndex();
+				//fontName[getIndex];
+				System.out.println(fontName[getIndex]);
 				MutableAttributeSet attr = new SimpleAttributeSet();
-		        StyleConstants.setFontFamily(attr, getName);
+		        StyleConstants.setFontFamily(attr, fontName[getIndex]);
 		        owner.setAttributeSet(attr);
 	        }
 	    });
@@ -290,6 +300,7 @@ public class ToolBarEx {
         jcbSelectSize.addActionListener(new ActionListener() {
     		public void actionPerformed(ActionEvent e) {
 	        	int fontsize =  Integer.parseInt(jcbSelectSize.getSelectedItem().toString());
+	        	//
 	        	MutableAttributeSet attr = new SimpleAttributeSet();
 	        	StyleConstants.setFontSize(attr,  fontsize);
 	        	owner.setAttributeSet(attr);
@@ -322,21 +333,22 @@ public class ToolBarEx {
         boldIcon.setMargin(new Insets(0, 0, 0, 0));
         boldIcon.setToolTipText("굵게");
         //
-        italicIcon = new JToggleButton();
+        owner.italicIcon = new JToggleButton();
         Icon italic = new ImageIcon(getClass().getResource("res/italic.png"));
-        italicIcon.setIcon(italic);
-        italicIcon.setToolTipText("기울임");
-        italicIcon.setMargin(new Insets(0, 0, 0, 0));
-        underlineIcon = new JToggleButton();
+        owner.italicIcon.setIcon(italic);
+        owner.italicIcon.setToolTipText("기울임");
+        owner.italicIcon.setMargin(new Insets(0, 0, 0, 0));
+        owner.underlineIcon = new JToggleButton();
         Icon underline = new ImageIcon(getClass().getResource("res/underline.png"));
-        underlineIcon.setIcon(underline);
-        underlineIcon.setToolTipText("밑줄");
-        underlineIcon.setMargin(new Insets(0, 0, 0, 0));
+        owner.underlineIcon.setIcon(underline);
+        owner.underlineIcon.setToolTipText("밑줄");
+        owner.underlineIcon.setMargin(new Insets(0, 0, 0, 0));
         JPanel chtools = new JPanel();
         chtools.setLayout(new GridLayout(1, 3));
+        //
         chtools.add(boldIcon);
-        chtools.add(italicIcon);
-        chtools.add(underlineIcon);
+        chtools.add(owner.italicIcon);
+        chtools.add(owner.underlineIcon);
         tb2.add(chtools);
         //pharagraph alignment icon set
         leftalignIcon = new JToggleButton();
@@ -363,17 +375,17 @@ public class ToolBarEx {
     		        owner.setAttributeSet(attr);
     		}
     	});
-    	italicIcon.addActionListener(new ActionListener() {
+        owner.italicIcon.addActionListener(new ActionListener() {
     		public void actionPerformed(ActionEvent e) {
     			MutableAttributeSet attr = new SimpleAttributeSet();
-    	        StyleConstants.setItalic(attr, italicIcon.isSelected());
+    	        StyleConstants.setItalic(attr, owner.italicIcon.isSelected());
     	        owner.setAttributeSet(attr);    					
     		}
     	});
-    	underlineIcon.addActionListener(new ActionListener() {
+        owner.underlineIcon.addActionListener(new ActionListener() {
     		public void actionPerformed(ActionEvent e) {
     			MutableAttributeSet attr = new SimpleAttributeSet();
-    	        StyleConstants.setUnderline(attr, underlineIcon.isSelected());
+    	        StyleConstants.setUnderline(attr, owner.underlineIcon.isSelected());
     	        owner.setAttributeSet(attr);  
     		}
     	});
@@ -721,6 +733,58 @@ public class ToolBarEx {
     	owner.getContentPane().add(toolbarwrap, BorderLayout.NORTH);
     	
    	}
-    
+
+	public void showAttribute(int p){
+	      //get attributes
+	      AttributeSet currentattr = new SimpleAttributeSet();
+	      //AttributeSet a = w_doc.getCharacterElement(p).getAttributes();
+	      StyledDocument w_doc = (StyledDocument) owner.m_monitor.getDocument();
+	      
+	      currentattr = w_doc.getCharacterElement(p).getAttributes();
+	      
+	      String font_family = StyleConstants.getFontFamily(currentattr);
+	      
+	      int font_num = Arrays.asList(fontName).indexOf(font_family);
+	      //
+	      if (font_family !=null) jcbFont.setSelectedIndex(font_num);
+	      //if (font_family !=null) jcbFont.setSelectedItem(font_family);
+	      Color font_color = StyleConstants.getForeground(currentattr);
+	      if (font_color != null) owner.colorButton1.setSelectColor(font_color);
+	      //
+	      String font_size = Integer.toString(StyleConstants.getFontSize(currentattr));
+	      System.out.println(font_size);
+	      if (font_size != null) jcbSelectSize.setSelectedItem(font_size);
+	      
+	      String line_spacing = Float.toString(StyleConstants.getLineSpacing(currentattr));
+	      if (line_spacing != null) jcbSelectSpace.setSelectedItem(line_spacing);
+	      
+	      Boolean isBold = StyleConstants.isBold(currentattr);
+	      if (isBold) boldIcon.setSelected(true);
+	  		else boldIcon.setSelected(false);    
+	      Boolean isItalic = StyleConstants.isItalic(currentattr);
+	      if (isItalic) owner.italicIcon.setSelected(true);
+			else owner.italicIcon.setSelected(false);
+	      Boolean isUnderline = StyleConstants.isUnderline(currentattr);
+	      if (isUnderline) owner.underlineIcon.setSelected(true);
+			else owner.underlineIcon.setSelected(false);
+	      //
+	      int alignment = StyleConstants.getAlignment(currentattr);
+	      //	    	        
+	      if (alignment == StyleConstants.ALIGN_JUSTIFIED) bothalignIcon.setSelected(true);
+	      	else bothalignIcon.setSelected(false);
+	      if (alignment == StyleConstants.ALIGN_CENTER) centeralignIcon.setSelected(true);
+	      	else centeralignIcon.setSelected(false);
+	      if (alignment == StyleConstants.ALIGN_RIGHT) rightalignIcon.setSelected(true);
+	      	else rightalignIcon.setSelected(false);
+	      if (alignment == StyleConstants.ALIGN_LEFT) leftalignIcon.setSelected(true);
+	      	else leftalignIcon.setSelected(false);
+	      //
+	      //CustomDocument doc = (CustomDocument)owner.m_monitor.getDocument();
+	      //Style style = doc.getLogicalStyle(owner.stylePos);
+	      //
+	      m_skipUpdate = false;
+	      //
+		}
+
 
 }

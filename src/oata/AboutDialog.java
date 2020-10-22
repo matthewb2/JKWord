@@ -133,7 +133,7 @@ public class AboutDialog  extends JFrame{
        
        setLocationRelativeTo(this);
        //setVisible(true);
-       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+       setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     }
     
 }

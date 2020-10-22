@@ -28,6 +28,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -47,12 +48,19 @@ public class MenuEx {
 	NeoHaneol owner;
 	JEditorPane pane;
 	//
+	
+
+    //protected JToolBar tb, tb2;
+    
+    
 	MenuEx(NeoHaneol owner){
 		this.owner = owner;
 		createMenu();
 	}
 	
 	public void createMenu(){
+		final JToolBar tb = null;
+		final JToolBar tb2 = null;
 		JMenuItem   new_blank, open, exit, close, find, replace, about, random, editpaper, printPreview; 
       	JMenuItem   deletefile, resize, save, saveas, print;
         JMenuItem   cut_text, paste_text, fullscreen, delete, previous, next;
@@ -289,12 +297,12 @@ public class MenuEx {
           toolbars.addActionListener(new ActionListener() {
               public void actionPerformed(ActionEvent ev) {
               	 if (toolbars.isSelected()) {
-              		owner.tb.setVisible(true);
-              		owner.tb2.setVisible(true);
+              		tb.setVisible(true);
+              		tb2.setVisible(true);
                    }
                    else {
-                	   owner.tb.setVisible(false);
-                	   owner.tb2.setVisible(false);
+                	   tb.setVisible(false);
+                	   tb2.setVisible(false);
                    }
               	 owner.m_monitor.repaint();
               }

@@ -29,6 +29,8 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -115,24 +117,25 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     //
     protected Double viewScale;
     
-    protected JToolBar tb, tb2;
     
-    
-    protected JComboBox zoomCombo;
+    protected JComboBox zoomCombo = new JComboBox();
     protected int height_max, width_max;
     protected JToggleButton leftalignIcon, bothalignIcon, rightalignIcon, centeralignIcon;
+    //
     protected JToggleButton italicIcon, boldIcon, underlineIcon;
-    protected static JComboBox jcbSelectSize;
-	protected static JComboBox jcbSelectSpace;
-	protected static JComboBox jcbFont;
+    //
 	protected Color selectColor;
     protected TableButton tableButton1;
     protected ColorButton colorButton1 = new ColorButton();
     protected JComboBox m_cbStyles;
     public boolean m_skipUpdate;
+    public boolean f_skipUpdate;
+    
     protected int m_xStart = -1;
     protected int m_xFinish = -1;
     protected String styleName;
+    //
+    ToolBarEx tb;
     //
 	int px_r_indent, px_l_indent, dx_r=0, dx_l=0;
     protected static int PAGE_INSET=5;
@@ -180,6 +183,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 	protected Runnable runnable;
 	
     protected SpinSlider spinSlider = new SpinSlider(NeoHaneol.this);
+    /*
     protected void showStyles() {
 	    m_skipUpdate = true;
 	    if (m_cbStyles.getItemCount() > 0){
@@ -192,7 +196,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 	      m_cbStyles.addItem(str);
 	    }
 	}
- 
+ 	*/
     public void setSelection(int xStart, int xFinish, boolean moveUp) {
       if (moveUp) {
         m_monitor.setCaretPosition(xFinish);
@@ -501,7 +505,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 			e.printStackTrace();
 		}
     }
-   
+    /*
     public void showAttribute(){
       //get attributes
       AttributeSet currentattr = new SimpleAttributeSet();
@@ -543,7 +547,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
       m_skipUpdate = false;
       //
 	}
-    
+    */
     void updateCellText() throws BadLocationException{
 		Element root = m_monitor.getDocument().getDefaultRootElement();
     	ElementIterator it = new ElementIterator(m_monitor.getDocument());
@@ -597,16 +601,17 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     
         
     protected void setAttributeSet(AttributeSet attr) {
+    	
     	    int xStart = m_monitor.getSelectionStart();
     	    int xFinish = m_monitor.getSelectionEnd();
-    	    if (!m_monitor.hasFocus()) {
-    	    }
+    	    //if (!m_monitor.hasFocus()) { }
     	    if (xStart != xFinish) {
     	      CustomDocument doc = (CustomDocument) m_monitor.getDocument();
-    	      doc.setCharacterAttributes(xStart, xFinish - xStart, 
-    	        attr, false);
+    	      // +1 is important
+    	      doc.setCharacterAttributes(xStart, xFinish - xStart+1, attr, false);
+    	      
     	    } 
-    	    else {}
+    	    
     }
     
     public void openEx() throws BadLocationException{
@@ -999,12 +1004,15 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
                 handleClosing();
             }
         });
-        //createMenu();
+        //create Menu
         MenuEx mu = new MenuEx(NeoHaneol.this);
-        //createToolbar();
-        ToolBarEx tb = new ToolBarEx(NeoHaneol.this);
+        //create Toolbar
+        tb = new ToolBarEx(NeoHaneol.this);
+        
         init();
-        showStyles();
+        //This is very important
+        updateVar();
+        //showStyles();
         currentFile = new File("이름 없는 문서1.hdf");
         createStausBar();
         this.setSize(1100, 750);
@@ -1023,53 +1031,20 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         //
         jsp.setBackground(new Color(245, 245, 245));
         leftSpace = (int) (jsp.getWidth()-55-page_width)/2;
+        //
     	drawColHeader();
-    	jsp.setColumnHeaderView(columnheader);
     	//
-    	final JComboBox zoomCombo = new JComboBox(new String[] {"50%", "75%", "100%", "125%", "150%", "200%"});	
-	    zoomCombo.addActionListener(new ActionListener() {
-	       public void actionPerformed(ActionEvent e) {
-	           String s = (String) zoomCombo.getSelectedItem();
-	           s = s.substring(0, s.length() - 1);
-	           double scale = new Double(s).doubleValue() / 100;
-	           m_monitor.getDocument().putProperty("ZOOM_FACTOR",new Double(scale));
-	           int page_width = (int) m_monitor.getDocument().getProperty("PAGE_WIDTH");
-	           int page_height = (int) m_monitor.getDocument().getProperty("PAGE_HEIGHT");
-	           View v=m_monitor.getUI().getRootView(m_monitor);
-		       int i=0;
-		       int pos = m_monitor.getCaretPosition();
-		       while (v!=null) {
-			    	  // 
-			       i=v.getViewIndex(pos, Position.Bias.Forward);
-			       v=v.getView(i);
-			       	
-			       if ( v instanceof SectionView){
-				       int pageNumber = ((SectionView) v).getPageCount();
-				       noWrapPanel.setPreferredSize(new Dimension((int) (page_width*scale), (int) (page_height*pageNumber*scale)));
-				       break;
-			       }
-		       }
-		       try {
-					adjustmainTextPane();
-				} catch (BadLocationException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-	           //update ruler
-	           updateVar();
-	           m_monitor.revalidate();
-	           m_monitor.repaint();
-	           //
-	           revalidate();
-	           repaint();
-	       }
-	    });
-	    zoomCombo.setSelectedItem("100%");
+    	jsp.setColumnHeaderView(columnheader);
+    	//This is important
+	    //zoomCombo.setSelectedItem("100%");
+	    
+    	
 	    //
     	//for resizing a frame
     	this.addComponentListener(this);
     	
     	//auto save procedure
+    	/*
     	runnable = new Runnable(){
     		public void run(){
     			System.out.println("auto save");
@@ -1078,7 +1053,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     	service = Executors.newSingleThreadScheduledExecutor();
         
     	service.scheduleAtFixedRate(runnable, 10, 10, TimeUnit.SECONDS);
-    	
+    	*/
 
         
     }
@@ -1233,6 +1208,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				// TODO Auto-generated method stub
+				/*
 				CustomDocument doc = (CustomDocument) m_monitor.getDocument();
 				JEditorPane src = (JEditorPane)e.getSource();
 				Element root = m_monitor.getDocument().getDefaultRootElement();
@@ -1268,64 +1244,17 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 					e2.printStackTrace();
 				}
 		    	st += celltext[icell].length();
-		    	} 
-								
+		    	}
+		    	 
+				*/				
 			}
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				// TODO Auto-generated method stub
-				if (colNumber>0 && rowNumber>0){
-				int bound = 4;
-				src = (JEditorPane)e.getSource();
-					
-				pos = src.viewToModel(e.getPoint());
-				v=src.getUI().getRootView(src);
-				//
-				m_monitor.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-				//find position of the table
-				Rectangle offset = findTablePosition(src);
-				
-				while (v!=null && !(v instanceof RowView)) {
-			    	  // i is cell number
-			         i=v.getViewIndex(pos, Position.Bias.Forward);
-			         v=v.getView(i);
-			         taborigin = a;
-				}
-				if(offset!=null){
-					if (v instanceof RowView){
-						rowNumber = i;
-						Rectangle a = ((RowView) v).getAllocation();
-						int rowHeight=(Integer)v.getAttributes().getAttribute(PARAM_ROW_HEIGHT);
-						if ((a.y+rowHeight +bound >= e.getY()) && (a.y+rowHeight -bound <= e.getY())){
-							m_monitor.setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
-	    					isHC=false;
-	    					isVC=true;
-	    				}
-					}
-				}
-				while (v!=null && !(v instanceof CellView)) {
-			    	  // i is cell number
-			         i=v.getViewIndex(pos, Position.Bias.Forward);
-			         v=v.getView(i);
-				}
-				if(offset!=null){
-					if (v instanceof CellView){
-						colNumber = i;
-						int cellwidth=0;
-						for (int j=0; j<=colNumber; j++) {
-							cellwidth += colwidths[j];
-						}
-						if ((offset.x+cellwidth +bound >= e.getX()) && (offset.x+cellwidth -bound <= e.getX())){
-							m_monitor.setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
-	    					isHC=true;
-	    					isVC=false;
-	    				}
-					}
-				}
-				
+			
 			
 			}
-			}
+			
 			
     	});
     	
@@ -1536,15 +1465,40 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         });
         m_monitor.addCaretListener(new CaretListener() { 
         	public void caretUpdate(CaretEvent e){
-        		showAttribute();
+        		//System.out.println(e.getDot());
+        		tb.showAttribute(e.getDot());
+        		//System.out.println("caret");
         	}
         	
         });
+        
+        FocusListener flst = new FocusListener() { 
+            public void focusGained(FocusEvent e) {
+              if (m_xStart>=0 && m_xFinish>=0)
+                if (m_monitor.getCaretPosition()==m_xStart) {
+                  m_monitor.setCaretPosition(m_xFinish);
+                  m_monitor.moveCaretPosition(m_xStart);
+                }
+                else
+                  m_monitor.select(m_xStart, m_xFinish);
+            }
+
+            public void focusLost(FocusEvent e) {
+              m_xStart = m_monitor.getSelectionStart();
+              m_xFinish = m_monitor.getSelectionEnd();
+            }
+          };
+          
+        m_monitor.addFocusListener(flst);
+        
+        //tb.showAttributes(0);
+        
+        //
         m_monitor.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				// TODO Auto-generated method stub
-				service.shutdown();
+				//service.shutdown();
 				
 				
 				
@@ -1587,9 +1541,11 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				// TODO Auto-generated method stub
+				/*
 				service = Executors.newSingleThreadScheduledExecutor();
 		        //
 		    	service.scheduleAtFixedRate(runnable, 10, 10, TimeUnit.SECONDS);
+		    	*/
 			}
 
 			@Override
@@ -1751,6 +1707,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         });
         jsp.setRowHeaderView(rowheader);
     }
+	
     @Override
 	public void componentHidden(ComponentEvent arg0) {
 		// TODO Auto-generated method stub
