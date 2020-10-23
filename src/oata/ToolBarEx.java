@@ -735,6 +735,7 @@ public class ToolBarEx {
    	}
 
 	public void showAttribute(int p){
+		  owner.f_skipUpdate = true;
 	      //get attributes
 	      AttributeSet currentattr = new SimpleAttributeSet();
 	      //AttributeSet a = w_doc.getCharacterElement(p).getAttributes();
@@ -752,7 +753,7 @@ public class ToolBarEx {
 	      if (font_color != null) owner.colorButton1.setSelectColor(font_color);
 	      //
 	      String font_size = Integer.toString(StyleConstants.getFontSize(currentattr));
-	      System.out.println(font_size);
+	      //System.out.println(font_size);
 	      if (font_size != null) jcbSelectSize.setSelectedItem(font_size);
 	      
 	      String line_spacing = Float.toString(StyleConstants.getLineSpacing(currentattr));
@@ -782,7 +783,8 @@ public class ToolBarEx {
 	      //CustomDocument doc = (CustomDocument)owner.m_monitor.getDocument();
 	      //Style style = doc.getLogicalStyle(owner.stylePos);
 	      //
-	      m_skipUpdate = false;
+	      owner.f_skipUpdate = false;
+	      
 	      //
 		}
 

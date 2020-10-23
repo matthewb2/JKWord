@@ -86,7 +86,6 @@ import javax.swing.plaf.basic.BasicTextUI;
 import javax.swing.text.*;
 import javax.swing.text.AbstractDocument.BranchElement;
 import javax.swing.text.rtf.RTFEditorKit;
-import javax.swing.Timer;
 
 import com.inet.jortho.FileUserDictionary;
 import com.inet.jortho.SpellChecker;
@@ -384,35 +383,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 	  	  lMargin = (int)(lmargin*scale);
     }
     
-    byte[] saveImages(ArrayList<ImageBucket> imgBucket, byte[] fileContent) throws IOException{
-  	  	byte[] imgtag = "[[img]]".getBytes();
-  	    byte[] imgsapar = ":app".getBytes();
-  	    int totallength =0;
-  	    int finallength =0;
-  	    for(int i = 0; i < imgBucket.size(); i++){
-  	    	//
-  	    	BufferedImage bImage = ImageIO.read(new File(imgBucket.get(i).file));
-  	        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-  	        ImageIO.write(bImage, imgBucket.get(i).type, bos );
-  	        imgBucket.get(i).data = bos.toByteArray();
-  	    	//
-  	        finallength  += imgBucket.get(i).data.length+imgsapar.length;
-  	    }
-  	    byte[] finalout = new byte[fileContent.length + imgtag.length+finallength];
-  	    //
-  	    System.arraycopy(fileContent, 0, finalout, 0, fileContent.length);
-  	    System.arraycopy(imgtag, 0, finalout, fileContent.length, imgtag.length);
-  	    totallength = fileContent.length+imgtag.length;
-  	    for(int i = 0; i < imgBucket.size(); i++){
-  		    System.arraycopy(imgBucket.get(i).data, 0, finalout, totallength, imgBucket.get(i).data.length);
-  		    totallength +=imgBucket.get(i).data.length;
-  		    if (i !=imgBucket.size()-1){ System.arraycopy(imgsapar, 0, finalout, totallength, imgsapar.length);
-  		    totallength +=imgsapar.length;
-  		    }
-  		    //
-  	    }
-  	    return finalout;
-    }
+    
     
     public static boolean isMatch(byte[] pattern, byte[] input, int pos) {
   	    for(int i=0; i< pattern.length; i++) {
@@ -601,16 +572,24 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     
         
     protected void setAttributeSet(AttributeSet attr) {
+    		if (f_skipUpdate)
+			return;
     	
     	    int xStart = m_monitor.getSelectionStart();
     	    int xFinish = m_monitor.getSelectionEnd();
-    	    //if (!m_monitor.hasFocus()) { }
+    	    //
+    	    System.out.println("xStart: "+xStart+" xFinish: "+xFinish);
+    	    CustomDocument doc = (CustomDocument) m_monitor.getDocument();
     	    if (xStart != xFinish) {
-    	      CustomDocument doc = (CustomDocument) m_monitor.getDocument();
+    	      
     	      // +1 is important
     	      doc.setCharacterAttributes(xStart, xFinish - xStart+1, attr, false);
-    	      
     	    } 
+    	    else {
+      	    	//
+    	    	((JTextPane) m_monitor).setParagraphAttributes(attr, true);
+      	    	m_monitor.grabFocus();
+      	    }
     	    
     }
     
@@ -729,6 +708,38 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 	    	  fos.write(saveImages(imgBucket, fileContent));
 	    }
 	}
+    
+    byte[] saveImages(ArrayList<ImageBucket> imgBucket, byte[] fileContent) throws IOException{
+  	  	byte[] imgtag = "[[img]]".getBytes();
+  	    byte[] imgsapar = ":app".getBytes();
+  	    int totallength =0;
+  	    int finallength =0;
+  	    for(int i = 0; i < imgBucket.size(); i++){
+  	    	//
+  	    	BufferedImage bImage = ImageIO.read(new File(imgBucket.get(i).file));
+  	        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+  	        ImageIO.write(bImage, imgBucket.get(i).type, bos );
+  	        imgBucket.get(i).data = bos.toByteArray();
+  	    	//
+  	        finallength  += imgBucket.get(i).data.length+imgsapar.length;
+  	    }
+  	    byte[] finalout = new byte[fileContent.length + imgtag.length+finallength];
+  	    //
+  	    System.arraycopy(fileContent, 0, finalout, 0, fileContent.length);
+  	    System.arraycopy(imgtag, 0, finalout, fileContent.length, imgtag.length);
+  	    totallength = fileContent.length+imgtag.length;
+  	    for(int i = 0; i < imgBucket.size(); i++){
+  		    System.arraycopy(imgBucket.get(i).data, 0, finalout, totallength, imgBucket.get(i).data.length);
+  		    totallength +=imgBucket.get(i).data.length;
+  		    if (i !=imgBucket.size()-1){ 
+  		    	System.arraycopy(imgsapar, 0, finalout, totallength, imgsapar.length);
+  		    	totallength +=imgsapar.length;
+  		    }
+  		    //
+  	    }
+  	    return finalout;
+    }
+    
     void show_editPaper(){
     	final PageSetupDialog psd = new PageSetupDialog(NeoHaneol.this, "용지설정",true);
   	    psd.addComponentListener(new ComponentListener() {
@@ -1466,6 +1477,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         m_monitor.addCaretListener(new CaretListener() { 
         	public void caretUpdate(CaretEvent e){
         		//System.out.println(e.getDot());
+        		//if selected
         		tb.showAttribute(e.getDot());
         		//System.out.println("caret");
         	}
@@ -2058,9 +2070,9 @@ class CustomEditorKit extends StyledEditorKit {
 					//table height
 					v = getView(i);
 					//Rectangle a = ((TableView) v).getAllocation();
-					//System.out.println(a.height);
+					//
 					float a = v.getPreferredSpan(View.Y_AXIS);
-					//System.out.println(a);
+					//
 					totalOffset = (int) (a+80);
 				}  else {
 					view = (PagingParagraphView) getView(i);
@@ -2086,7 +2098,6 @@ class CustomEditorKit extends StyledEditorKit {
 		}
 		
 		public void paint(Graphics g, Shape a) {
-			//	super.paint(g, a);
 		    Graphics2D g2d = (Graphics2D) g;
 		    double zoomFactor = getZoomFactor();
 		    AffineTransform old = g2d.getTransform();
@@ -2116,6 +2127,7 @@ class CustomEditorKit extends StyledEditorKit {
 				g.fillRect(page.x, page.y + page.height, page.width, alloc.height - page.height);
 			}
 			*/
+			//System.out.println(getZoomFactor());
 			if (Math.round(getZoomFactor()*100) == 100){
 			    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 				//
