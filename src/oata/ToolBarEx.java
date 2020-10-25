@@ -288,7 +288,7 @@ public class ToolBarEx {
 	        	//Change font of text
 				int getIndex = jcbFont.getSelectedIndex();
 				//fontName[getIndex];
-				System.out.println(fontName[getIndex]);
+				//System.out.println(fontName[getIndex]);
 				MutableAttributeSet attr = new SimpleAttributeSet();
 		        StyleConstants.setFontFamily(attr, fontName[getIndex]);
 		        owner.setAttributeSet(attr);

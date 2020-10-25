@@ -292,6 +292,7 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 	
 	public static void imageTransferText(int pos, Point pt){
 		DefaultStyledDocument dDoc = (DefaultStyledDocument)m_monitor.getStyledDocument();
+		System.out.println("image clicked");
 		//
 		if (pos <= dDoc.getLength()){
 			try {
@@ -1109,8 +1110,8 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     	m_monitor.setEditorKit(new CustomEditorKit());
     	//
         CustomDocument doc = (CustomDocument) m_monitor.getDocument();
-        m_monitor.setCaretColor(Color.black);
-        m_monitor.setCaret(new CustomCaret(NeoHaneol.this));
+        //m_monitor.setCaretColor(Color.black);
+        //m_monitor.setCaret(new CustomCaret(NeoHaneol.this));
         /*
         try{
         	//before table
@@ -1393,11 +1394,12 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
        	MutableAttributeSet set = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
     	//
     	StyleConstants.setLineSpacing(set, 0.6f);
-        int xStart = m_monitor.getSelectionStart();
-        int xFinish = m_monitor.getSelectionEnd();
+    	//
         //
-        doc.setParagraphAttributes(xStart, xFinish-xStart, set, true);
-        String filePath = "c://multicdata.txt";
+        //
+        m_monitor.setParagraphAttributes(set, false);
+        
+        String filePath = "c://multicdata7.txt";
         /*
         int st = doc.getLength();
     	int[] colwidths = new int[] {250, 170, 100};
@@ -1420,15 +1422,83 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         }catch (Exception e){
         }
         
-        //
+        
         
         Style style1 = m_monitor.addStyle("Icon0", null);
-        StyleConstants.setIcon(style1, new ImageIcon("C:\\youinna.jpg"));
+        StyleConstants.setIcon(style1, new ImageIcon("C:\\unnamed.jpg"));
+        
+                        
         //
     	try{
-    	    doc.insertString(doc.getLength(), "\\img:0", style1);
+    		doc.insertString(doc.getLength(), "\n", null);
+    		doc.insertString(doc.getLength(), "\\img:0", style1);
+    		
+    		MutableAttributeSet set2 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
+        	StyleConstants.setLineSpacing(set2, 0.0f);
+            
+            int start = m_monitor.getText().indexOf("\\img:0");
+            //System.out.println(start);
+            
+            doc.setParagraphAttributes(start, 7, set2, false);
+            
+            doc.insertString(doc.getLength(), "\n", null);
+            
+            MutableAttributeSet set3 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
+    	    set3 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
+        	StyleConstants.setLineSpacing(set3, 0.6f);
+        	doc.setParagraphAttributes(doc.getLength(), 1, set3, false);
+            
+        	
         }catch (Exception e){ }
     	
+    	//change font size
+    	//start new line
+        doc.insertString(doc.getLength(), "\n", null);
+        
+        
+        try{
+    	    doc.insertString(doc.getLength(), "This is the end of page", attrs);
+    	    
+            
+        }catch (Exception e){
+        }
+
+        //second image
+        Style style2 = m_monitor.addStyle("Icon0", null);
+        StyleConstants.setIcon(style2, new ImageIcon("C:\\rose.jpg"));
+        
+                        
+        //
+    	try{
+    		doc.insertString(doc.getLength(), "\n", null);
+    		doc.insertString(doc.getLength(), "\\img:1", style1);
+    		
+    		MutableAttributeSet set2 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
+        	StyleConstants.setLineSpacing(set2, 0.0f);
+            
+            int start = m_monitor.getText().indexOf("\\img:1");
+            //System.out.println(start);
+            
+            doc.setParagraphAttributes(start, 7, set2, false);
+            
+            doc.insertString(doc.getLength(), "\n", null);
+            
+            MutableAttributeSet set3 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
+    	    set3 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
+        	StyleConstants.setLineSpacing(set3, 0.6f);
+        	doc.setParagraphAttributes(doc.getLength(), 1, set3, false);
+            
+        	
+        }catch (Exception e){ }
+    	
+    	//find how many images in the context
+    	String str2 = m_monitor.getText();
+    	//System.out.println(str2.matches("(.*)img:(.*)"));
+    	String[] words = str2.split("img:");
+    	System.out.println(words.length-1);
+    	
+    	
+		
         
         m_monitor.addMouseListener(new MouseListener(){
 			@Override
@@ -1437,16 +1507,29 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 				 JEditorPane src=(JEditorPane)e.getSource();
 				 show_status_info(src);
 		         //
-				 int pos = m_monitor.viewToModel(e.getPoint());
-			     //
-			     imageTransferText(pos, e.getPoint());
+			     int pos = src.viewToModel(e.getPoint());
+				 //check image exists
+			     //System.out.println(pos);
+				 View v=src.getUI().getRootView(src);
+				 int i=0;
+				 while (v!=null && !(v instanceof IconView)) {
+				         i=v.getViewIndex(pos, Position.Bias.Forward);
+				         v=v.getView(i);
+				         //System.out.println(v.toString());
+				 }
+				 if (v instanceof IconView){
+				  	System.out.println("icon");
+					//imageTransfer();
+				 }
+				  
 			     //
 			     try {
 					checkDiff();
-				} catch (BadLocationException e1) {
+			     } catch (BadLocationException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-				}
+			     }
+				 
 			}
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
@@ -1462,7 +1545,6 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 					if (colNumber>0){
 					clickOffset = new Point(e.getPoint().x, e.getPoint().y);
 					oldw = colwidths[colNumber];
-					//System.out.println(oldw);
 					oldh = rowheights[rowNumber];
 					//System.out.println(rowheights[rowNumber]);
 					}
@@ -1476,7 +1558,6 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         });
         m_monitor.addCaretListener(new CaretListener() { 
         	public void caretUpdate(CaretEvent e){
-        		//System.out.println(e.getDot());
         		//if selected
         		tb.showAttribute(e.getDot());
         		//System.out.println("caret");
