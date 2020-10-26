@@ -1431,15 +1431,32 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         //
     	try{
     		doc.insertString(doc.getLength(), "\n", null);
-    		doc.insertString(doc.getLength(), "\\img:0", style1);
-    		
+    		doc.insertString(doc.getLength(), " ", style1);
+    		/*
     		MutableAttributeSet set2 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
         	StyleConstants.setLineSpacing(set2, 0.0f);
             
             int start = m_monitor.getText().indexOf("\\img:0");
-            //System.out.println(start);
-            
+                        
             doc.setParagraphAttributes(start, 7, set2, false);
+                       
+            
+            */
+    		
+            ElementIterator iterator = new ElementIterator(doc);
+            Element element;
+            while ((element = iterator.next()) != null) {
+                //
+                if (element.getName().equals("icon")){
+                	//System.out.println(element.getStartOffset());
+                	MutableAttributeSet set2 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
+                	StyleConstants.setLineSpacing(set2, 0.0f);
+                    
+                	doc.setParagraphAttributes(element.getStartOffset(), 7, set2, false);
+                }
+                
+            }
+
             
             doc.insertString(doc.getLength(), "\n", null);
             
@@ -1451,10 +1468,8 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         	
         }catch (Exception e){ }
     	
-    	//change font size
     	//start new line
         doc.insertString(doc.getLength(), "\n", null);
-        
         
         try{
     	    doc.insertString(doc.getLength(), "This is the end of page", attrs);
@@ -1466,8 +1481,6 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         //second image
         Style style2 = m_monitor.addStyle("Icon0", null);
         StyleConstants.setIcon(style2, new ImageIcon("C:\\rose.jpg"));
-        
-                        
         //
     	try{
     		doc.insertString(doc.getLength(), "\n", null);
@@ -1477,10 +1490,9 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         	StyleConstants.setLineSpacing(set2, 0.0f);
             
             int start = m_monitor.getText().indexOf("\\img:1");
-            //System.out.println(start);
+            //
             
             doc.setParagraphAttributes(start, 7, set2, false);
-            
             doc.insertString(doc.getLength(), "\n", null);
             
             MutableAttributeSet set3 = new SimpleAttributeSet(m_monitor.getParagraphAttributes());
@@ -1492,13 +1504,9 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
         }catch (Exception e){ }
     	
     	//find how many images in the context
-    	String str2 = m_monitor.getText();
-    	//System.out.println(str2.matches("(.*)img:(.*)"));
-    	String[] words = str2.split("img:");
-    	System.out.println(words.length-1);
-    	
-    	
-		
+    	//
+    	//CustomDocument doc = (CustomDocument) m_monitor.getDocument();
+    	System.out.println(findImageNumber(doc));
         
         m_monitor.addMouseListener(new MouseListener(){
 			@Override
@@ -1703,6 +1711,23 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     	
 
    }
+    
+   int findImageNumber(CustomDocument doc){
+		ElementIterator iterator = new ElementIterator(doc);
+        Element element;
+        int j=0;
+        while ((element = iterator.next()) != null) {
+            //
+            if (element.getName().equals("icon"))
+            	j++;
+            
+        }
+        //System.out.println(j);
+    		
+        return j;
+		
+   }
+    
     
    void show_status_info(JEditorPane src){
 
