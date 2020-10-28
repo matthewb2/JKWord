@@ -455,9 +455,9 @@ public class ToolBarEx {
    		            	callingButton.invalidate();
    		            	callingButton.repaint();
    		            	//
-   		            	//SimpleAttributeSet attr = new SimpleAttributeSet();
-                        //StyleConstants.setForeground(attr, clDlg.selectColor);
-    		            //setAttributeSet(attr);
+   		            	SimpleAttributeSet attr = new SimpleAttributeSet();
+                        StyleConstants.setForeground(attr, clDlg.selectColor);
+    		            owner.setAttributeSet(attr);
     		            clDlg.dispose();
 				    }
 

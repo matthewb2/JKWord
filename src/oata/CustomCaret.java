@@ -61,6 +61,11 @@ public class CustomCaret extends DefaultCaret{
 	            last.hide();
 	        }
 	    }
+	    //remain focus selection
+	    @Override
+	    public void setSelectionVisible(boolean visible) {
+	       super.setSelectionVisible(true);
+	    }
 
 	    /**
 	     * Called when the component containing the caret loses focus. Instead

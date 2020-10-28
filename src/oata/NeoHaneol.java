@@ -1110,8 +1110,8 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
     	m_monitor.setEditorKit(new CustomEditorKit());
     	//
         CustomDocument doc = (CustomDocument) m_monitor.getDocument();
-        //m_monitor.setCaretColor(Color.black);
-        //m_monitor.setCaret(new CustomCaret(NeoHaneol.this));
+        m_monitor.setCaretColor(Color.black);
+        m_monitor.setCaret(new CustomCaret(NeoHaneol.this));
         /*
         try{
         	//before table
@@ -1517,13 +1517,13 @@ public class NeoHaneol extends JFrame implements ComponentListener, Printable{
 		         //
 			     int pos = src.viewToModel(e.getPoint());
 				 //check image exists
-			     //System.out.println(pos);
+			     //
 				 View v=src.getUI().getRootView(src);
 				 int i=0;
 				 while (v!=null && !(v instanceof IconView)) {
 				         i=v.getViewIndex(pos, Position.Bias.Forward);
 				         v=v.getView(i);
-				         //System.out.println(v.toString());
+				         //
 				 }
 				 if (v instanceof IconView){
 				  	System.out.println("icon");
